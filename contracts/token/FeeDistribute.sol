@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import "../protocol/WNativeRelayer.sol";
+import "./WNativeRelayer.sol";
 
 contract FeeDistribute is Ownable, ReentrancyGuard {
   using SafeMath for uint256;
@@ -132,7 +132,7 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
     UserInfo storage user = userInfo[_pid][msg.sender];
     require(pool.stakeToken != address(0), "FeeDistribute::deposit:: not accept deposit.");
     updatePool(_pid);
-    if (user.amount > 0) _harvest(msg.sender, _pid);
+    if (user.amount > 0) _harvest(_pid);
     if (_amount > 0) {
       IERC20(pool.stakeToken).safeTransferFrom(address(msg.sender), address(this), _amount);
       user.amount = user.amount.add(_amount);
@@ -156,7 +156,7 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
     UserInfo storage user = userInfo[_pid][msg.sender];
     require(user.amount >= _amount, "FeeDistribute::withdraw:: not good.");
     updatePool(_pid);
-    if (user.amount > 0) _harvest(msg.sender, _pid);
+    if (user.amount > 0) _harvest(_pid);
     if (_amount > 0) {
       user.amount = user.amount.sub(_amount);
       user.rewardDebt = user.amount.mul(pool.rewardPerShare).div(PRECISION);
@@ -173,13 +173,13 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][msg.sender];
     updatePool(_pid);
-    _harvest(msg.sender, _pid);
+    _harvest(_pid);
     user.rewardDebt = user.amount.mul(pool.rewardPerShare).div(PRECISION);
   }
 
-  function _harvest(address _to, uint256 _pid) internal {
+  function _harvest(uint256 _pid) internal {
     PoolInfo storage pool = poolInfo[_pid];
-    UserInfo storage user = userInfo[_pid][_to];
+    UserInfo storage user = userInfo[_pid][msg.sender];
     require(user.amount > 0, "FeeDistribute::harvest:: nothing to harvest.");
     uint256 pending = user.amount.mul(pool.rewardPerShare).div(PRECISION).sub(user.rewardDebt);
     if (pending > 0) {
@@ -187,10 +187,11 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
       if (pool.rewardToken == wNative) {
         IERC20(pool.rewardToken).safeTransfer(wNativeRelayer, pending);
         WNativeRelayer(payable(wNativeRelayer)).withdraw(pending);
-        (bool success, ) = _to.call{ value: pending }(new bytes(0));
+        (bool success, ) = msg.sender.call{ value: pending }(new bytes(0));
         require(success, "!safeTransfer");
+      } else {
+        IERC20(pool.rewardToken).safeTransfer(msg.sender, pending);
       }
-      IERC20(pool.rewardToken).safeTransfer(_to, pending);
     }
     emit Harvest(msg.sender, _pid, pending);
   }
@@ -212,4 +213,6 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
     }
     emit EmergencyWithdraw(msg.sender, _pid, amount);
   }
+
+  receive() external payable {}
 }
