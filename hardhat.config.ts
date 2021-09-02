@@ -10,7 +10,7 @@ import "hardhat-deploy";
 import "solidity-coverage";
 
 module.exports = {
-  defaultNetwork: 'testmaticmainnet',
+  defaultNetwork: 'maticmainnet',
   networks: {
     fork_mainnet: {
       url: 'http://127.0.0.1:8545',
@@ -18,38 +18,11 @@ module.exports = {
       gas: 12000000,
       network_id: "9999"
     },
-    bsctestnet: {
-      url: "https://data-seed-prebsc-1-s2.binance.org:8545/",
-      chainId: 97,
-      gas: "auto",
-      gasPrice: 20000000000,
-      accounts: [process.env.BSC_TESTNET_PRIVATE_KEY],
-    },
-    bscmainnet: {
-      url: 'https://bsc-dataseed1.defibit.io/',
-      chainId: 56,
-      accounts: [process.env.BSC_MAINNET_PRIVATE_KEY],
-    },
     maticmainnet: { 
-      // url: "https://rpc-mainnet.matic.network",
-      // url: "https://rpc-mainnet.maticvigil.com",
-      // url: "https://rpc-mainnet.matic.quiknode.pro",
       url: "https://matic-mainnet.chainstacklabs.com",
       chainId: 137,
-      // gasPrice: 150000000000,
       gas: "auto",
       gasPrice: "auto",
-      accounts: [process.env.MATIC_MAINNET_PRIVATE_KEY],
-    },
-    testmaticmainnet: { 
-      // url: "https://rpc-mainnet.matic.network",
-      // url: "https://rpc-mainnet.maticvigil.com",
-      url: "https://rpc-mainnet.matic.quiknode.pro",
-      // url: "https://matic-mainnet.chainstacklabs.com",
-      chainId: 137,
-      gasPrice: 150000000000,
-      gas: "auto",
-      // gasPrice: "auto",
       accounts: [process.env.MATIC_MAINNET_PRIVATE_KEY],
     },
     mumbaitestnet: { 
@@ -129,10 +102,7 @@ module.exports = {
       }]
   },
   etherscan: {
-    // apiKey: process.env.ethApi//ETH-Etherscan
-    // apiKey: process.env.bscApi //BSC-BSCScan
     apiKey: process.env.maticApi //MATIC-Polygonscan
-
   },
   paths: {
     sources: './contracts',
