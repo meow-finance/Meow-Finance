@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import "./WNativeRelayer.sol";
+import "../protocol/WNativeRelayer.sol";
 
 contract FeeDistribute is Ownable, ReentrancyGuard {
   using SafeMath for uint256;
