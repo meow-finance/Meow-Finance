@@ -1,6 +1,6 @@
 # Meow Contract
 
-**Leveraged yield farming on POLYGON**
+**Leveraged yield farming on FANTOM**
 
 
 

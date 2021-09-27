@@ -1,0 +1,26 @@
+diff --git a/node_modules/@nomiclabs/hardhat-etherscan/dist/src/network/prober.js b/node_modules/@nomiclabs/hardhat-etherscan/dist/src/network/prober.js
+index 6374d94..332284f 100644
+--- a/node_modules/@nomiclabs/hardhat-etherscan/dist/src/network/prober.js
++++ b/node_modules/@nomiclabs/hardhat-etherscan/dist/src/network/prober.js
+@@ -19,6 +19,8 @@ var NetworkID;
+     NetworkID[NetworkID["HECO_TESTNET"] = 256] = "HECO_TESTNET";
+     // Fantom mainnet
+     NetworkID[NetworkID["OPERA"] = 250] = "OPERA";
++    // Fantom testnet
++    NetworkID[NetworkID["FANTOM_TESTNET"] = 4002] = "FANTOM_TESTNET";
+     // Optimistim
+     NetworkID[NetworkID["OPTIMISTIC_ETHEREUM"] = 10] = "OPTIMISTIC_ETHEREUM";
+     NetworkID[NetworkID["OPTIMISTIC_KOVAN"] = 69] = "OPTIMISTIC_KOVAN";
+@@ -66,7 +68,11 @@ const networkIDtoEndpoints = {
+         browserURL: "https://testnet.hecoinfo.com",
+     },
+     [NetworkID.OPERA]: {
+-        apiURL: "https://api.ftmscan.com/api",
++        apiURL: "https://api-testnet.ftmscan.com/api",
++        browserURL: "https://testnet.ftmscan.com/",
++    },
++    [NetworkID.FANTOM_TESTNET]: {
++        apiURL: "https://api-testnet.ftmscan.com/api",
+         browserURL: "https://ftmscan.com",
+     },
+     [NetworkID.OPTIMISTIC_ETHEREUM]: {

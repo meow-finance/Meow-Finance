@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 import "./IVaultConfig.sol";
@@ -38,8 +38,8 @@ interface IVault {
   // Return Token value and debt of the given position. Be careful of unaccrued interests.
   function positionInfo(uint256 id) external view returns (uint256, uint256);
 
-  // Return pool id of borrower FairLaunch of this Vault.
-  function fairLaunchPoolId() external view returns (uint256);
+  // Return pool id of borrower MeowMining of this Vault.
+  function meowMiningPoolId() external view returns (uint256);
 
   // Add more token to the Vault.
   function deposit(uint256 amountToken) external payable;

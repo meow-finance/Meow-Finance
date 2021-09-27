@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
@@ -20,7 +20,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     address interestModel,
     address wrappedNative,
     address wNativeRelayer,
-    address fairLaunch
+    address meowMining
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
@@ -39,8 +39,8 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public wrappedNative;
   /// address for wNtive Relayer
   address public wNativeRelayer;
-  /// address of fairLaunch contract
-  address public fairLaunch;
+  /// address of meowMining contract
+  address public meowMining;
   /// maximum killBps
   uint256 public maxKillBps;
   /// list of whitelisted callers
@@ -53,12 +53,12 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     ITripleSlopeModel _interestModel,
     address _wrappedNative,
     address _wNativeRelayer,
-    address _fairLaunch
+    address _meowMining
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
 
     maxKillBps = 500;
-    setParams(_minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _fairLaunch);
+    setParams(_minDebtSize, _reservePoolBps, _killBps, _interestModel, _wrappedNative, _wNativeRelayer, _meowMining);
   }
 
   /// @dev Set all the basic parameters. Must only be called by the owner.
@@ -73,7 +73,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     ITripleSlopeModel _interestModel,
     address _wrappedNative,
     address _wNativeRelayer,
-    address _fairLaunch
+    address _meowMining
   ) public onlyOwner {
     require(_killBps <= maxKillBps, "ConfigurableInterestVaultConfig::setParams:: kill bps exceeded max kill bps");
 
@@ -83,7 +83,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     interestModel = _interestModel;
     wrappedNative = _wrappedNative;
     wNativeRelayer = _wNativeRelayer;
-    fairLaunch = _fairLaunch;
+    meowMining = _meowMining;
 
     emit SetParams(
       _msgSender(),
@@ -93,7 +93,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
       address(interestModel),
       wrappedNative,
       wNativeRelayer,
-      fairLaunch
+      meowMining
     );
   }
 
@@ -130,9 +130,9 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     return wNativeRelayer;
   }
 
-  /// @dev Return the address of fair launch contract
-  function getFairLaunchAddr() external view override returns (address) {
-    return fairLaunch;
+  /// @dev Return the address of MeowMining contract
+  function getMeowMiningAddr() external view override returns (address) {
+    return meowMining;
   }
 
   /// @dev Return the interest rate per year.

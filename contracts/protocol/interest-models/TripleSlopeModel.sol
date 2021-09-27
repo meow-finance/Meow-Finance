@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -74,8 +74,10 @@ contract TripleSlopeModel is Ownable {
     } else if (utilization < CEIL_SLOPE_3) {
       // Between 90% and 100% - 25%-100% APY
       return
-        (interest2) +
-        (utilization.sub(CEIL_SLOPE_2).mul((interest3.sub(interest2)).div(CEIL_SLOPE_3.sub(CEIL_SLOPE_2)))).mul(1e18);
+        ((interest2) +
+          (utilization.sub(CEIL_SLOPE_2).mul((interest3.sub(interest2)).div(CEIL_SLOPE_3.sub(CEIL_SLOPE_2))))).mul(
+            1e18
+          );
     } else {
       // Not possible, but just in case - 100% APY
       return interest3.mul(1e18);
