@@ -8,7 +8,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "./IUniswapV2Router02.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultConfig.sol";
-import "../../token/interfaces/IFairLaunch.sol";
+import "../../token/interfaces/IMeowMining.sol";
 import "../interfaces/IWorker.sol";
 import "../interfaces/ISushiWorker.sol";
 import "../interfaces/IQuickWorker.sol";
@@ -29,13 +29,13 @@ contract MeowAPI2 is Ownable {
   IUniswapV2Router02 public quickRouter;
   IUniswapV2Factory public quickFactory;
   IStakingRewardsFactory public stakingRewardsFactory;
-  IFairLaunch public fairLaunch;
+  IMeowMining public meowMining;
   address[] public vaults;
   address[] public sushiWorkers;
   address[] public quickWorkers;
 
   constructor(
-    IFairLaunch _fairLaunch,
+    IMeowMining _meowMining,
     IUniswapV2Router02 _sushiRouter,
     IMiniChefV2 _miniChef,
     IUniswapV2Router02 _quickRouter,
@@ -43,7 +43,7 @@ contract MeowAPI2 is Ownable {
     address _meowToken,
     address _usdcToken
   ) public {
-    fairLaunch = _fairLaunch;
+    meowMining = _meowMining;
     sushiRouter = _sushiRouter;
     sushiFactory = IUniswapV2Factory(_sushiRouter.factory());
     miniChef = _miniChef;
@@ -58,7 +58,7 @@ contract MeowAPI2 is Ownable {
   // ===== Set Params function ===== //
 
   function setParams(
-    IFairLaunch _fairLaunch,
+    IMeowMining _meowMining,
     IUniswapV2Router02 _sushiRouter,
     IMiniChefV2 _miniChef,
     IUniswapV2Router02 _quickRouter,
@@ -66,7 +66,7 @@ contract MeowAPI2 is Ownable {
     address _meowToken,
     address _usdcToken
   ) public onlyOwner {
-    fairLaunch = _fairLaunch;
+    meowMining = _meowMining;
     sushiRouter = _sushiRouter;
     sushiFactory = IUniswapV2Factory(_sushiRouter.factory());
     miniChef = _miniChef;
@@ -138,7 +138,7 @@ contract MeowAPI2 is Ownable {
 
   // =============================== //
 
-  // ===== Fairlaunch function ===== //
+  // ===== MeowMining function ===== //
 
   // Return pool info.
   function poolInfo(uint256 _pid)
@@ -151,7 +151,7 @@ contract MeowAPI2 is Ownable {
       uint256
     )
   {
-    return fairLaunch.poolInfo(_pid);
+    return meowMining.poolInfo(_pid);
   }
 
   // ========================== //
@@ -211,7 +211,7 @@ contract MeowAPI2 is Ownable {
     if (_vault != address(0)) decimals = uint256(IERC20(_vault).decimals());
     uint256 usdcPerMatic = getTokenPerMatic(quickFactory.getPair(wMatic, usdcToken));
     address meowLp = quickFactory.getPair(wMatic, meowToken);
-    (address stakeToken, , , ) = fairLaunch.poolInfo(_pid);
+    (address stakeToken, , , ) = meowMining.poolInfo(_pid);
     if (stakeToken == meowLp || _vault == address(0))
       return IERC20(wMatic).balanceOf(meowLp).mul(uint256(2)).mul(usdcPerMatic).div(1e18);
     price = ibTokenPrice(_vault).mul(baseTokenPrice(_vault)).div(10**decimals);
@@ -537,7 +537,7 @@ contract MeowAPI2 is Ownable {
     address meowLp = quickFactory.getPair(wMatic, meowToken);
     if (meowLp == address(0)) return 0;
     return
-      (IERC20(meowLp).balanceOf(address(fairLaunch)))
+      (IERC20(meowLp).balanceOf(address(meowMining)))
         .mul(1e18)
         .div(IUniswapV2Pair(meowLp).totalSupply())
         .mul(IERC20(meowToken).balanceOf(meowLp))

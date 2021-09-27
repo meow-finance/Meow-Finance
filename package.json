@@ -2,7 +2,10 @@
   "name": "meow-finance",
   "version": "1.0.0",
   "scripts": {
-    "prettier:solidity": "prettier --write 'contracts/**/*.sol'"
+    "prettier:solidity": "prettier --write 'contracts/**/*.sol'",
+    "pathpacket": "npx patch-package @openzeppelin/contracts-ethereum-package && npx patch-package @nomiclabs/hardhat-etherscan",
+    "postinstall": "npx patch-package",
+    "compile": "npx hardhat compile"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
@@ -35,7 +38,7 @@
     "@openzeppelin/contracts": "3.4",
     "@openzeppelin/contracts-ethereum-package": "^3.0.0",
     "@openzeppelin/hardhat-upgrades": "^1.6.0",
-    "@openzeppelin/test-helpers": "^0.5.10",
+    "@openzeppelin/test-helpers": "^0.5.13",
     "@uniswap/v2-core": "^1.0.1",
     "chai-bn": "^0.2.1",
     "ethereumjs-util": "^7.0.10",

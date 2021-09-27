@@ -4,7 +4,7 @@ var utils = require('ethers').utils;
 
  // ===== Value ===== //
 
-const leverageVal = 0;
+const leverageVal = 200;
 const openPrice = 0;
 const liqPrice = 0;
 const stopLoss = 0;
@@ -12,16 +12,16 @@ const takeProfit = 0;
 
  // ================ //
 
- // ===== Sushi ===== //
+ // ===== Spooky ===== //
 
-const baseOnly = '';
-const twosides = '';
-const liquidate = '';
-const minimize = '';
+const baseOnly = '0x961604b6b234Ae9B353D11Df8a19F6D8d9959087';
+const twosides = '0x57546E0359AA783468fD54fD68965851e3AF98B6'; //FTM
+const liquidate = '0xb341dA4889e122A48977C1Fa2bFaC4c0205c35DA';
+const minimize = '0xC054B08f980C93165B4bEA37a3D611D5368687E6';
 
 // ================== //
 
-// ===== Quick ===== //
+// ===== Spirit ===== //
 
 // const baseOnly = '';
 // const twosides = '';
@@ -31,7 +31,7 @@ const minimize = '';
 // ================== //
 
 
-const stra = baseOnly;
+const stra = liquidate;
 
 // Strategy - BaseOnly
 if (stra == baseOnly) {
@@ -44,7 +44,7 @@ if (stra == baseOnly) {
 
 //Strategy - TwoSides
 if (stra == twosides) {
-    const farmingTokenAmount = utils.parseUnits('0','6');
+    const farmingTokenAmount = utils.parseUnits('60','6');
     const minLPAmount = 0;
     const data1 = web3.eth.abi.encodeParameters(['uint256', 'uint256'], [farmingTokenAmount, minLPAmount]);
     const data2 = web3.eth.abi.encodeParameters(['uint256','uint256','uint256','uint256','uint256','address', 'bytes'], [leverageVal, openPrice, liqPrice, stopLoss, takeProfit,stra, data1]);
