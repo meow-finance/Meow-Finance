@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 interface IVaultConfig {
@@ -18,8 +18,8 @@ interface IVaultConfig {
   /// @dev Return the address of wNative relayer.
   function getWNativeRelayer() external view returns (address);
 
-  /// @dev Return the address of fair launch contract.
-  function getFairLaunchAddr() external view returns (address);
+  /// @dev Return the address of MeowMining contract.
+  function getMeowMiningAddr() external view returns (address);
 
   /// @dev Return the bps rate for reserve pool.
   function getReservePoolBps() external view returns (uint256);

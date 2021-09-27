@@ -7,7 +7,7 @@ import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol";
 import "./IUniswapV2Router02.sol";
 import "../interfaces/IVault.sol";
 import "../interfaces/IVaultConfig.sol";
-import "../../token/interfaces/IFairLaunch.sol";
+import "../../token/interfaces/IMeowMining.sol";
 import "../interfaces/IWorker.sol";
 import "../interfaces/ISushiWorker.sol";
 import "../interfaces/IQuickWorker.sol";
@@ -29,11 +29,11 @@ contract MeowAPI {
   IUniswapV2Router02 public quickRouter;
   IUniswapV2Factory public quickFactory;
   IStakingRewardsFactory public stakingRewardsFactory;
-  IFairLaunch public fairLaunch;
+  IMeowMining public meowMining;
   ITripleSlopeModel public interest;
 
   constructor(
-    IFairLaunch _fairLaunch,
+    IMeowMining _meowMining,
     ITripleSlopeModel _interest,
     IUniswapV2Router02 _sushiRouter,
     IMiniChefV2 _miniChef,
@@ -42,7 +42,7 @@ contract MeowAPI {
     address _meowToken,
     address _usdcToken
   ) public {
-    fairLaunch = _fairLaunch;
+    meowMining = _meowMining;
     interest = _interest;
     sushiRouter = _sushiRouter;
     sushiFactory = IUniswapV2Factory(_sushiRouter.factory());
@@ -127,9 +127,9 @@ contract MeowAPI {
     return balanceOf(_vault, _user).mul(totalToken(_vault)).div(totalSupply(_vault));
   }
 
-  // Return Fairlaunch pool id for borrower.
-  function getFairLaunchPoolId(address _vault) public view returns (uint256) {
-    return IVault(_vault).fairLaunchPoolId();
+  // Return MeowMining pool id for borrower.
+  function getMeowMiningPoolId(address _vault) public view returns (uint256) {
+    return IVault(_vault).meowMiningPoolId();
   }
 
   // Return next position id for the given Vault.
@@ -195,16 +195,16 @@ contract MeowAPI {
 
   // =============================== //
 
-  // ===== Fairlaunch function ===== //
+  // ===== MeowMining function ===== //
 
   // Return MEOW per second.
   function meowPerSecond() public view returns (uint256) {
-    return fairLaunch.meowPerSecond();
+    return meowMining.meowPerSecond();
   }
 
   // Return total allocation point.
   function totalAllocPoint() public view returns (uint256) {
-    return fairLaunch.totalAllocPoint();
+    return meowMining.totalAllocPoint();
   }
 
   // Return userInfo.
@@ -220,7 +220,7 @@ contract MeowAPI {
       uint256
     )
   {
-    return fairLaunch.userInfo(_pid, _user);
+    return meowMining.userInfo(_pid, _user);
   }
 
   // Return pool info.
@@ -234,13 +234,13 @@ contract MeowAPI {
       uint256
     )
   {
-    return fairLaunch.poolInfo(_pid);
+    return meowMining.poolInfo(_pid);
   }
 
   // Return total stake token for given pool.
   function totalStake(uint256 _pid) public view returns (uint256) {
     (address stakeToken, , , ) = poolInfo(_pid);
-    return IERC20(stakeToken).balanceOf(address(fairLaunch));
+    return IERC20(stakeToken).balanceOf(address(meowMining));
   }
 
   // Return allocation point for given pool.
@@ -265,7 +265,7 @@ contract MeowAPI {
 
   // Return pending MeowToken for the given user.
   function pendingMeow(uint256 _pid, address _user) public view returns (uint256) {
-    return fairLaunch.pendingMeow(_pid, _user);
+    return meowMining.pendingMeow(_pid, _user);
   }
 
   // Return MEOW lockedAmount.
@@ -276,7 +276,7 @@ contract MeowAPI {
 
   // Return pending release MEOW for the given user.
   function availableUnlock(uint256 _pid, address _user) public view returns (uint256) {
-    return fairLaunch.availableUnlock(_pid, _user);
+    return meowMining.availableUnlock(_pid, _user);
   }
 
   // Return meowPerSecond for given pool
@@ -295,7 +295,7 @@ contract MeowAPI {
   function rewardAPY(address _vault, uint256 _pid) public view returns (uint256) {
     uint256 decimals;
     address meowLp = quickFactory.getPair(wMatic, meowToken);
-    (address stakeToken, , , ) = fairLaunch.poolInfo(_pid);
+    (address stakeToken, , , ) = meowMining.poolInfo(_pid);
     if (stakeToken == meowLp) {
       decimals = uint256(IERC20(meowLp).decimals());
     } else {
@@ -309,7 +309,7 @@ contract MeowAPI {
 
   // Return reward APY of borrower for the given Vault.
   function borrowerRewardAPY(address _vault) public view returns (uint256) {
-    uint256 _pid = IVault(_vault).fairLaunchPoolId();
+    uint256 _pid = IVault(_vault).meowMiningPoolId();
     uint256 decimals = uint256(IERC20(_vault).decimals());
     uint256 numerator = rewardPerYear(_pid).mul(meowPrice()).mul(uint256(100));
     uint256 price = baseTokenPrice(_vault);
@@ -373,7 +373,7 @@ contract MeowAPI {
     uint256 decimals = uint256(IERC20(_vault).decimals());
     uint256 usdcPerMatic = getTokenPerMatic(quickFactory.getPair(wMatic, usdcToken));
     address meowLp = quickFactory.getPair(wMatic, meowToken);
-    (address stakeToken, , , ) = fairLaunch.poolInfo(_pid);
+    (address stakeToken, , , ) = meowMining.poolInfo(_pid);
     if (stakeToken == meowLp) return IERC20(wMatic).balanceOf(meowLp).mul(uint256(2)).mul(usdcPerMatic).div(1e18);
     price = ibTokenPrice(_vault).mul(baseTokenPrice(_vault)).div(10**decimals);
     return price;
@@ -694,13 +694,10 @@ contract MeowAPI {
         (sushiPerYear(pid).mul(getSushiPrice()).div(1e18)).add(
           getRewardPerYearSushi(pid).mul(getRewardPrice(pid)).div(10**(rewardTokenDecimals(pid)))
         )
-      )
-      .mul(uint256(100))
-      .mul(1e18);
+      ).mul(uint256(100)).mul(1e18);
       uint256 denominator = (
         (IERC20(lp).balanceOf(address(miniChef)).mul(1e18).div(IERC20(lp).totalSupply())).mul(getLPValue(worker))
-      )
-      .div(1e18);
+      ).div(1e18);
       yieldFarmAPY[i] = denominator == 0 ? 0 : numerator.div(denominator);
       workersList[i] = worker;
     }
@@ -719,8 +716,7 @@ contract MeowAPI {
       uint256 numerator = quickPerYear(stakingRewards).mul(getQuickPrice()).mul(uint256(100));
       uint256 denominator = (
         (IERC20(lp).balanceOf(stakingRewards).mul(1e18).div(IERC20(lp).totalSupply())).mul(getLPValue(worker))
-      )
-      .div(1e18);
+      ).div(1e18);
       yieldFarmAPY[i] = denominator == 0 ? 0 : numerator.div(denominator);
       workersList[i] = worker;
     }
@@ -785,7 +781,7 @@ contract MeowAPI {
 
   // Return borrower info for the given Vault.
   function getBorrowerReward(address _vault, address _user) public view returns (bytes memory) {
-    uint256 _pid = IVault(_vault).fairLaunchPoolId();
+    uint256 _pid = IVault(_vault).meowMiningPoolId();
     return
       abi.encode(
         vaultDebtVal(_vault),

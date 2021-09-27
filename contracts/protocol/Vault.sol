@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 pragma experimental ABIEncoderV2;
 
@@ -14,7 +14,7 @@ import "./interfaces/IDebtToken.sol";
 import "./interfaces/IVaultConfig.sol";
 import "./interfaces/IWorker.sol";
 import "./interfaces/IVault.sol";
-import "../token/interfaces/IFairLaunch.sol";
+import "../token/interfaces/IMeowMining.sol";
 import "../utils/SafeToken.sol";
 import "./WNativeRelayer.sol";
 
@@ -59,7 +59,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// name - name of the ibERC20
   /// symbol - symbol of ibERC20
   /// decimals - decimals of ibERC20, this depends on the decimal of the token
-  /// debtToken - just a simple ERC20 token for staking with FairLaunch
+  /// debtToken - just a simple ERC20 token for staking with MeowMining
   address public override token;
   address public debtToken;
 
@@ -87,7 +87,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   mapping(uint256 => Position) public override positions;
   mapping(address => Liquidated[]) public killedPosition;
   uint256 public override nextPositionID;
-  uint256 public override fairLaunchPoolId;
+  uint256 public override meowMiningPoolId;
 
   uint256 public vaultDebtShare;
   uint256 public override vaultDebtVal;
@@ -154,11 +154,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     lastAccrueTime = now;
     token = _token;
 
-    fairLaunchPoolId = uint256(-1);
+    meowMiningPoolId = uint256(-1);
 
     debtToken = _debtToken;
 
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
+    SafeToken.safeApprove(debtToken, config.getMeowMiningAddr(), uint256(-1));
 
     // free-up execution scope
     _IN_EXEC_LOCK = _NOT_ENTERED;
@@ -254,21 +254,21 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Mint & deposit debtToken on behalf of farmers
   /// @param id The ID of the position
   /// @param amount The amount of debt that the position holds
-  function _fairLaunchDeposit(uint256 id, uint256 amount) internal {
+  function _meowMiningDeposit(uint256 id, uint256 amount) internal {
     if (amount > 0) {
       IDebtToken(debtToken).mint(address(this), amount);
-      IFairLaunch(config.getFairLaunchAddr()).deposit(positions[id].owner, fairLaunchPoolId, amount);
+      IMeowMining(config.getMeowMiningAddr()).deposit(positions[id].owner, meowMiningPoolId, amount);
     }
   }
 
   /// @dev Withdraw & burn debtToken on behalf of farmers
   /// @param id The ID of the position
-  function _fairLaunchWithdraw(uint256 id) internal {
+  function _meowMiningWithdraw(uint256 id) internal {
     if (positions[id].debtShare > 0) {
       // Note: Do this way because we don't want to fail open, close, or kill position
-      // if cannot withdraw from FairLaunch somehow. 0xb5c5f672 is a signature of withdraw(address,uint256,uint256)
-      (bool success, ) = config.getFairLaunchAddr().call(
-        abi.encodeWithSelector(0xb5c5f672, positions[id].owner, fairLaunchPoolId, positions[id].debtShare)
+      // if cannot withdraw from MeowMining somehow. 0xb5c5f672 is a signature of withdraw(address,uint256,uint256)
+      (bool success, ) = config.getMeowMiningAddr().call(
+        abi.encodeWithSelector(0xb5c5f672, positions[id].owner, meowMiningPoolId, positions[id].debtShare)
       );
       if (success) IDebtToken(debtToken).burn(address(this), positions[id].debtShare);
     }
@@ -288,7 +288,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 maxReturn,
     bytes calldata data
   ) external payable onlyEOAorWhitelisted transferTokenToVault(principalAmount) accrue(principalAmount) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "Vault::work:: poolId not set");
+    require(meowMiningPoolId != uint256(-1), "Vault::work:: poolId not set");
     (LEVVAL, OPEN_PRICE, LIQ_PRICE, STOP_LOSS, TAKE_PROFIT, , ) = abi.decode(
       data,
       (uint256, uint256, uint256, uint256, uint256, address, bytes)
@@ -311,7 +311,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       require(id < nextPositionID, "Vault::work:: bad position id");
       require(pos.worker == worker, "Vault::work:: bad position worker");
       require(pos.owner == msg.sender, "Vault::work:: not position owner");
-      _fairLaunchWithdraw(id);
+      _meowMiningWithdraw(id);
     }
     emit Work(id, loan);
     // Update execution scope variables
@@ -343,7 +343,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
       uint256 workFactor = config.workFactor(worker, debt);
       require(health.mul(workFactor) >= debt.mul(10000), "Vault::work:: bad work factor");
       _addDebt(id, debt);
-      _fairLaunchDeposit(id, pos.debtShare);
+      _meowMiningDeposit(id, pos.debtShare);
     }
     // 5. Release execution scope
     POSITION_ID = _NO_ID;
@@ -368,12 +368,12 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
   function kill(uint256 id) external onlyEOAorWhitelisted accrue(0) nonReentrant {
-    require(fairLaunchPoolId != uint256(-1), "Vault::kill:: poolId not set");
+    require(meowMiningPoolId != uint256(-1), "Vault::kill:: poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
     require(pos.debtShare > 0, "Vault::kill:: no debt");
-    // 2. Distribute ALPACAs in FairLaunch to owner
-    _fairLaunchWithdraw(id);
+    // 2. Distribute ALPACAs in MeowMining to owner
+    _meowMiningWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
     uint256 killFactor = config.killFactor(pos.worker, debt);
@@ -455,16 +455,16 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     require(_debtToken != token, "Vault::updateDebtToken:: _debtToken must not be the same as token");
     address[] memory okHolders = new address[](2);
     okHolders[0] = address(this);
-    okHolders[1] = config.getFairLaunchAddr();
+    okHolders[1] = config.getMeowMiningAddr();
     IDebtToken(_debtToken).setOkHolders(okHolders, true);
     debtToken = _debtToken;
-    fairLaunchPoolId = _newPid;
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
+    meowMiningPoolId = _newPid;
+    SafeToken.safeApprove(debtToken, config.getMeowMiningAddr(), uint256(-1));
   }
 
-  function setFairLaunchPoolId(uint256 _poolId) external onlyOwner {
-    SafeToken.safeApprove(debtToken, config.getFairLaunchAddr(), uint256(-1));
-    fairLaunchPoolId = _poolId;
+  function setMeowMiningPoolId(uint256 _poolId) external onlyOwner {
+    SafeToken.safeApprove(debtToken, config.getMeowMiningAddr(), uint256(-1));
+    meowMiningPoolId = _poolId;
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.

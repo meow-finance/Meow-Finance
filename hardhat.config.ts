@@ -1,8 +1,7 @@
 import { config as dotEnvConfig } from "dotenv";
+import {accounts, API} from "./secrets.json";
+dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` });
 import "@nomiclabs/hardhat-etherscan";
-
-dotEnvConfig();
-
 import "@openzeppelin/hardhat-upgrades";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
@@ -10,25 +9,26 @@ import "hardhat-deploy";
 import "solidity-coverage";
 
 module.exports = {
-  defaultNetwork: 'maticmainnet',
+  defaultNetwork: 'fantommainnet',
   networks: {
     fork_mainnet: {
       url: 'http://127.0.0.1:8545',
-      accounts: [process.env.FORK_MAINNET_PRIVATE_KEY],
+      accounts: accounts.forkMainnet.length > 0 ? accounts.forkMainnet : accounts.testnet,
       gas: 12000000,
       network_id: "9999"
     },
-    maticmainnet: { 
-      url: "https://matic-mainnet.chainstacklabs.com",
-      chainId: 137,
-      gas: "auto",
-      gasPrice: "auto",
-      accounts: [process.env.MATIC_MAINNET_PRIVATE_KEY],
+    fantomtestnet: {
+      // url: "https://rpc.testnet.fantom.network/",
+      url: "https://xapi.testnet.fantom.network/lachesis",
+      chainId: 4002,
+      accounts: accounts.fantomTestnet.length > 0 ? accounts.fantomTestnet : accounts.testnet,
     },
-    mumbaitestnet: { 
-      url: "https://rpc-mumbai.maticvigil.com",
-      chainId: 80001,
-      accounts: [process.env.MUMBAI_TESTNET_PRIVATE_KEY],
+    fantommainnet: {
+      url: "https://rpc.ftm.tools/",
+      // url: "https://rpcapi.fantom.network/",
+      chainId: 250,
+      gasPrice: "auto",
+      accounts: accounts.fantomMainnet.length > 0 ? accounts.fantomMainnet : accounts.mainnet,
     },
   },
   namedAccounts: {
@@ -38,13 +38,24 @@ module.exports = {
   },
   solidity: {
     compilers: [
-      {version: "0.5.16",
-      settings: {
+      {
+        version: "0.4.18",
+        settings: {
         optimizer: {
           enabled: true,
           runs: 200,
         }
-      }},
+      }
+      },
+      {
+        version: "0.5.16",
+        settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,
+        }
+      }
+      },
       {
         version: "0.6.0",
         settings: {
@@ -99,10 +110,22 @@ module.exports = {
             runs: 200,
           }
         }
-      }]
+      },
+      {
+        version: "0.8.0",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          }
+        }
+      },
+    ]
   },
   etherscan: {
-    apiKey: process.env.maticApi //MATIC-Polygonscan
+    apiKey: API.ApiKeyFantom, //Fantom-FTMscan
+    apiURL: "https://api.ftmscan.com/api"
+
   },
   paths: {
     sources: './contracts',
