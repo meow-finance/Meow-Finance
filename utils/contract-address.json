@@ -1,359 +1,284 @@
 {
-  "ProxyAdmin": "0x806f644d1A7cAEa319F2DE555C40880b4477c8d7",
-  "Timelock": "0xC979f065629cEaEdc9a440Eb0c06341654594dFC",
-  "FairLaunch": {
-    "address": "0xcEA0e1cEcB0B379Da984Fa43C4E8EF13D1860754",
-    "pools": [
-      {
-        "id": 0,
-        "stakingToken": "Meow-MATIC Quickswap LP token",
-        "address": "0x81d0105D9b80b5C050F0b4515d1642B031FE5E2c"
-      },
-      {
-        "id": 5,
-        "stakingToken": "debtibUSDC",
-        "address": "0xBcF8cdFE9d1919db4794119F08764bCCF1834090"
-      },
-      {
-        "id": 6,
-        "stakingToken": "Interest Bearing USDC (ibUSDC)",
-        "address": "0x973322Eac2Bd86AA437c38F70e653A2aDaeceeb1"
-      },
-      {
-        "id": 7,
-        "stakingToken": "debtibUSDT",
-        "address": "0x373cDB5Be7489d22F7164307516EEbFc3D323420"
-      },
-      {
-        "id": 8,
-        "stakingToken": "Interest Bearing USDT (ibUSDT)",
-        "address": "0x16dd8B358489f367e3Be1Ed9fe2834cBc31150A7"
-      },
-      {
-        "id": 9,
-        "stakingToken": "debtibDAI",
-        "address": "0x0E2539880818708B7fF387B087B6Fc0422b1a103"
-      },
-      {
-        "id": 10,
-        "stakingToken": "Interest Bearing DAI (ibDAI)",
-        "address": "0x2CE67C798bb6eF45287BB38edE8BfA666c7c9273"
-      },
-      {
-        "id": 11,
-        "stakingToken": "debtibWETH",
-        "address": "0x87843298192A13e2D7767B825c1D32f2AF80b2BF"
-      },
-      {
-        "id": 12,
-        "stakingToken": "Interest Bearing WETH (ibWETH)",
-        "address": "0x1AcCb917e6194799Ba5DB1ABF759D69498327e00"
-      },
-      {
-        "id": 13,
-        "stakingToken": "debtibWBTC",
-        "address": "0x0E14ceFe898Be6511588faE6601017b972E0A8e7"
-      },
-      {
-        "id": 14,
-        "stakingToken": "Interest Bearing WBTC (ibWBTC)",
-        "address": "0x357c39A123d59dE96560821A0942A45119bd4065"
-      },
-      {
-        "id": 15,
-        "stakingToken": "debtibMATIC",
-        "address": "0x8EB79BcCc144E8780A7cb12C6EC4e752cBD20bA6"
-      },
-      {
-        "id": 16,
-        "stakingToken": "Interest Bearing MATIC (ibMATIC)",
-        "address": "0x8AfD89E925FA907E76dcF88f3a37256297044679"
-      },
-      {
-        "id": 17,
-        "stakingToken": "mMeow",
-        "address": "0x8730C7Ff4D7BAb8D23C6Ab6f8AB19eec9b92Fffc"
+  "250": {
+    "Timelock": "0x6B6C5bf5b09b41fc3c5606A40aD38Ed08b8cbBfA",
+    "MeowMining": {
+      "address": "0xa8FC690E6110F9Dc36Ea29eB66fACFC4372ce784",
+      "pools": [
+        {
+          "id": 0,
+          "stakingToken": "debtibFTM",
+          "address": "0x5aC071E5dAbFf44e3D684EdAa0aaA6C727049935"
+        },
+        {
+          "id": 1,
+          "stakingToken": "Interest Bearing FTM (ibFTM)",
+          "address": "0x891166DBD4bdd90b9d42214c6d4720D7a5585f5B"
+        },
+        {
+          "id": 2,
+          "stakingToken": "debtibBTC",
+          "address": "0x35cA5BD91f1f8F252C9428530aB585f6787BFc1c"
+        },
+        {
+          "id": 3,
+          "stakingToken": "Interest Bearing BTC (ibBTC)",
+          "address": "0xF8166f9eC314D146b7ecacd32A506AaF0FaCF65e"
+        },
+        {
+          "id": 4,
+          "stakingToken": "debtibUSDC",
+          "address": "0x162467C3deF679E6c0a7fcE3FC307884BbbF7062"
+        },
+
+        {
+          "id": 5,
+          "stakingToken": "Interest Bearing USDC (ibUSDC)",
+          "address": "0xBEA3e683D4a15Ec1Ed2d1c4590504eB67F780cF9"
+        },
+        {
+          "id": 6,
+          "stakingToken": "debtibfUSDT",
+          "address": "0x2818475F591272384cD1eF4C9FfD301FD46154AB"
+        },
+        {
+          "id": 7,
+          "stakingToken": "Interest Bearing USDT (ibfUSDT)",
+          "address": "0x19D2136B9719D701C3a8FB0Eae77c0cA8C4F35e8"
+        },
+        {
+          "id": 8,
+          "stakingToken": "debtibDAI",
+          "address": "0x08b7aDf08c891c9E4506fAedfB631e8e47bE6dA6"
+        },
+        {
+          "id": 9,
+          "stakingToken": "Interest Bearing DAI (ibDAI)",
+          "address": "0x00a7d45132Fbf46a99727674110E878b6c65AD50"
+        },
+        {
+          "id": 10,
+          "stakingToken": "debtibETH",
+          "address": "0xc5FD566ADE24Ca80C156290aFBdb5f23a1D75443"
+        },
+        {
+          "id": 11,
+          "stakingToken": "Interest Bearing ETH (ibETH)",
+          "address": "0x0a983ec7FEB0A21180dF8C4C944FC96E8a47483F"
+        },
+        {
+          "id": 12,
+          "stakingToken": "debtibBOO",
+          "address": "0x30A37d3179862b696618c9FED1009f209d4A0f8b"
+        },
+        {
+          "id": 13,
+          "stakingToken": "Interest Bearing BOO (ibBOO)",
+          "address": "0x149937DB2F42b58832089158fa4513526F7B0ADA"
+        },
+        {
+          "id": 14,
+          "stakingToken": "mMeowToken",
+          "address": "0x2ed765833AF497D3292A9951e88F591dd0EA09b3"
+        },
+        {
+          "id": 15,
+          "stakingToken": "Meow-FTM Spookyswap LP token",
+          "address": "0xbe10ce13563E85E14Cdac52Aab6324c806C1A83A"
+        }
+      ]
+    },
+    "Tokens": {
+      "Meow": "0x8a320009A9f44C41D71Ce811E8Af8942588ee322",
+      "mMeow": "0x2ed765833AF497D3292A9951e88F591dd0EA09b3"
+    },
+    "LpTokens": {
+      "Meow-FTM Spookyswap LP token": "0xbe10ce13563E85E14Cdac52Aab6324c806C1A83A"
+    },
+    "SharedStrategies": {
+      "Spookyswap": {
+        "StrategyAddBaseTokenOnly": "0x961604b6b234Ae9B353D11Df8a19F6D8d9959087",
+        "StrategyLiquidate": "0xb341dA4889e122A48977C1Fa2bFaC4c0205c35DA",
+        "StrategyWithdrawMinimizeTrading": "0xC054B08f980C93165B4bEA37a3D611D5368687E6"
       }
-    ]
-  },
-  "Tokens": {
-    "Meow": "0xFC33a6f3d29494C648F59b75595f72EB825B7e0f",
-    "mMeow": "0x8730C7Ff4D7BAb8D23C6Ab6f8AB19eec9b92Fffc"
-  },
-  "LpTokens": {
-    "Meow-MATIC Quickswap LP token": "0x81d0105D9b80b5C050F0b4515d1642B031FE5E2c"
-  },
-  "SharedStrategies": {
-    "Sushiswap": {
-      "StrategyAddBaseTokenOnly": "0xD2a0E8769756b24FA700d0C2CccC44bF7eccE070",
-      "StrategyLiquidate": "0x1e4217495Cf0540e76BE705f47126922f4367664",
-      "StrategyWithdrawMinimizeTrading": "0xAD9b382DE6F6EFf25016fF2345066a111Ed21542"
     },
-    "Quickswap": {
-      "StrategyAddBaseTokenOnly": "0x89D55e77aaA13383Fc72CF2ef1132Abb5b006EFf",
-      "StrategyLiquidate": "0x14297b339039a1aBeCa1Bd88A33cF9d7e95e6B27",
-      "StrategyWithdrawMinimizeTrading": "0xE4c03fE70368126A4DA07af111C971cfF9c45e71"
-    }
-  },
-  "SharedConfig": {
-    "TripleSlopeModel": "0x559B3F2E4e189BD0eD0ed58E437E7edB753E4803",
-    "WNativeRelayer": "0x7Ed6650eAA6a55d0595D07111F0b494b17338Bd3",
-    "WorkerConfig": "0x953BF54035090A42214b1BE898CC65E2eFce096a"
-  },
-  "Oracle": {
-    "SimplePriceOracle": "0xbC9E7a2e083ED28A372bc9209fb45256C1db998B"
-  },
-  "Vaults": [
-    {
-      "name": "Interest Bearing MATIC",
-      "symbol": "ibMATIC",
-      "address": "0x8AfD89E925FA907E76dcF88f3a37256297044679",
-      "baseToken": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
-      "debtToken": "0x8EB79BcCc144E8780A7cb12C6EC4e752cBD20bA6",
-      "config": "0x2EaFb811DBf00f078fb4D99a772854C05EE4Ba72",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0x48D1254332658300eb5e05Dd4A8590BC79c0FBF0",
-        "Quickswap": "0x58946Bf33D0aC42f14E51491615800ea8A78e477"
-      },
-      "workers": [
-        {
-          "name": "WMATIC-WETH SushiswapWorker",
-          "address": "0x94Bbf084f8149b7bcB95315e707bf154202A1194",
-          "pId": 0
-        },
-        {
-          "name": "WMATIC-WETH QuickswapWorker",
-          "address": "0x3149eBB0dCc4BC8ac2f1F87C38D9c3207e47Ed69",
-          "pId": 1
-        },
-        {
-          "name": "WMATIC-QUICK QuickswapWorker",
-          "address": "0x0bD4aCa86C096c4447Ac9808c95f42af402dEd08",
-          "pId": 0
-        },
-        {
-          "name": "WMATIC-USDC QuickswapWorker",
-          "address": "0x5B8Df9DeDD44848Aa683200E62C34858310c4082",
-          "pId": 61
-        }
-      ]
+    "SharedConfig": {
+      "TripleSlopeModel": "0x50daB2A9a358F0B2EcE6ee0cA4cf8426D98389e8",
+      "WNativeRelayer": "0xc20Bb72F3b5E6f313c3423529BB6bc32E32499F5",
+      "WorkerConfig": "0x8157Cf8e31a0546723AAAb045916a99ce164963D"
     },
-    {
-      "name": "Interest Bearing USDC",
-      "symbol": "ibUSDC",
-      "address": "0x973322Eac2Bd86AA437c38F70e653A2aDaeceeb1",
-      "baseToken": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
-      "debtToken": "0xBcF8cdFE9d1919db4794119F08764bCCF1834090",
-      "config": "0x72982686c5afbaf7f9C2Aa88387bC24FE6FEE9f2",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0x4aaa12cE0cD663E9A20b6E0F66977c20bE40748c",
-        "Quickswap": "0xAA81482883706097dbf6C0cbdb374cb169b5b2c5"
-      },
-      "workers": [
-        {
-          "name": "USDC-WETH SushiswapWorker",
-          "address": "0x4B8AC371D90Be974DaB63B7EbA943A4f816A1297",
-          "pId": 1
-        },
-        {
-          "name": "USDC-DAI SushiswapWorker",
-          "address": "0x2a28528E2610083D798Aaa3e7db3F581B3ae6711",
-          "pId": 11
-        },
-        {
-          "name": "USDC-USDT SushiswapWorker",
-          "address": "0x04247D6d3605f4C35fF73741A3FFF97703186A3F",
-          "pId": 8
-        },
-        {
-          "name": "USDC-WETH QuickswapWorker",
-          "address": "0xdbeca84390a60b528fcadE66A84B783D53162AE4",
-          "pId": 7
-        },
-        {
-          "name": "USDC-USDT QuickswapWorker",
-          "address": "0x1dE21Bc3b9380149853005172742D8DE19d76f8d",
-          "pId": 20
-        },
-        {
-          "name": "WBTC-USDC QuickswapWorker",
-          "address": "0x23826605fE0987d50E97B0Af7B06cc0Fab23A69d",
-          "pId": 21
-        },
-        {
-          "name": "USDC-DAI QuickswapWorker",
-          "address": "0xD8Ea35a44CCd560FBAe86Ae1Cf5416E76Cb44e88",
-          "pId": 31
-        },
-        {
-          "name": "WMATIC-USDC QuickswapWorker",
-          "address": "0xE334195795EA5949cEDC0cdfB2424478f6f074d0",
-          "pId": 61
-        }
-      ]
+    "Oracle": {
+      "SimplePriceOracle": "0x26440B83233998F5a11AecFfE0D5A7C774DF7D19"
     },
-    {
-      "name": "Interest Bearing USDT",
-      "symbol": "ibUSDT",
-      "address": "0x16dd8B358489f367e3Be1Ed9fe2834cBc31150A7",
-      "baseToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "debtToken": "0x373cDB5Be7489d22F7164307516EEbFc3D323420",
-      "config": "0x0981b0b257c9985668905774dFD288A0C6cC55E0",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0x6fA3d86252A653CC2D6D8DE0ceEaEC040f9755De",
-        "Quickswap": "0xE4304Ca800Cb8Fd9d23B1D0109E227408fc0f2fF"
+    "Vaults": [
+      {
+        "name": "Interest Bearing FTM",
+        "symbol": "ibFTM",
+        "address": "0x891166DBD4bdd90b9d42214c6d4720D7a5585f5B",
+        "baseToken": "0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83",
+        "debtToken": "0x5aC071E5dAbFf44e3D684EdAa0aaA6C727049935",
+        "config": "0x304aa78E3A0141e2882cC3Ff70d50D3638E04F2f",
+        "StrategyAddTwoSidesOptimal": {
+          "Spookyswap": "0x57546E0359AA783468fD54fD68965851e3AF98B6"
+        },
+        "workers": [
+          {
+            "name": "USDC-FTM Spookyswap Worker",
+            "address": "0x720A9CD69923B71659f433277fc1f66dca26cb8B",
+            "pId": 2
+          },
+          {
+            "name": "ETH-FTM Spookyswap Worker",
+            "address": "0xDD7f65558eF68AFf0BBB1f2d4b9ae8d1918A3F01",
+            "pId": 5
+          },
+          {
+            "name": "fUSDT-FTM Spookyswap Worker",
+            "address": "0x103811ACB6c5cB63E115EC49f1df9d36776243a8",
+            "pId": 1
+          },
+          {
+            "name": "DAI-FTM Spookyswap Worker",
+            "address": "0x8e58292b44f820EFE5F1E02f9023263482fA6734",
+            "pId": 3
+          },
+          {
+            "name": "BTC-FTM Spookyswap Worker",
+            "address": "0xe682d3E9248d4b5F841c7CbdA26510c6cd5dd628",
+            "pId": 4
+          },
+          {
+            "name": "BNB-FTM Spookyswap Worker",
+            "address": "0xafed3fD6bba9cD2aB6fe7496a0021a45D3101B86",
+            "pId": 19
+          },
+          {
+            "name": "BOO-FTM Spookyswap Worker",
+            "address": "0x0504b301F90FB485330aab87f6FaaF9B6B3E4171",
+            "pId": 0
+          },
+          {
+            "name": "LINK-FTM Spookyswap Worker",
+            "address": "0xE3bF90eaa6DEe1C8B540d1B124a929E0AE01B446",
+            "pId": 6
+          },
+          {
+            "name": "SUSHI-FTM Spookyswap Worker",
+            "address": "0xE9fD151CABFA8806c73Cd4bF1f019f9b16B79091",
+            "pId": 10
+          }
+        ]
       },
-      "workers": [
-        {
-          "name": "WETH-USDT SushiswapWorker",
-          "address": "0xc528B529E2B24870c3901cD47B69928EFF603c53",
-          "pId": 2
+      {
+        "name": "Interest Bearing BTC",
+        "symbol": "ibBTC",
+        "address": "0xF8166f9eC314D146b7ecacd32A506AaF0FaCF65e",
+        "baseToken": "0x321162Cd933E2Be498Cd2267a90534A804051b11",
+        "debtToken": "0x35cA5BD91f1f8F252C9428530aB585f6787BFc1c",
+        "config": "0x0Dac635BAe159c5df1972EEf8E7FB5e63fe9AE08",
+        "StrategyAddTwoSidesOptimal": {
+          "Spookyswap": "0x05eFee5B4867dD3BcC340d0D855e147b6595cbBB"
         },
-        {
-          "name": "USDC-USDT SushiswapWorker",
-          "address": "0x4Afa88b1C719C2b803dbb7856f366Dc3F0A98d94",
-          "pId": 8
-        },
-        {
-          "name": "WETH-USDT QuickswapWorker",
-          "address": "0xA3ED2713F1fFB68C447c45afeF48197623028f1b",
-          "pId": 104
-        },
-        {
-          "name": "USDC-USDT QuickswapWorker",
-          "address": "0xcd496957Db8fBf9C328b327087E8D911325CE16F",
-          "pId": 20
-        }
-      ]
-    },
-    {
-      "name": "Interest Bearing DAI",
-      "symbol": "ibDAI",
-      "address": "0x2CE67C798bb6eF45287BB38edE8BfA666c7c9273",
-      "baseToken": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
-      "debtToken": "0x0E2539880818708B7fF387B087B6Fc0422b1a103",
-      "config": "0xaCc2e096Da9d94d072a900F8fcbDa96F4Cf1A9B1",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0xBDDf57d23c8c6Eb78C6198a83bc14CEC7a1a5Ffa",
-        "Quickswap": "0xf086b32dae06daD04AEC74B2f268e260F7e82c33"
+        "workers": [
+          {
+            "name": "WFTM-BTC Spookyswap Worker",
+            "address": "0x3f9a8a1BaE12cF3F5EfF382D2B46Cd2DF70B6959",
+            "pId": 4
+          }
+        ]
       },
-      "workers": [
-        {
-          "name": "WETH-DAI SushiswapWorker",
-          "address": "0x89695c888bef61da39F5F6AeAa1aCe5DB2a71Fb0",
-          "pId": 5
+      {
+        "name": "Interest Bearing USDC",
+        "symbol": "ibUSDC",
+        "address": "0xBEA3e683D4a15Ec1Ed2d1c4590504eB67F780cF9",
+        "baseToken": "0x04068DA6C83AFCFA0e13ba15A6696662335D5B75",
+        "debtToken": "0x162467C3deF679E6c0a7fcE3FC307884BbbF7062",
+        "config": "0x3dF6921E4e2dcc0258Ed06975D85De38F02808da",
+        "StrategyAddTwoSidesOptimal": {
+          "Spookyswap": "0x6AE64cc09D384ee2c6E3996b029EAf19AD51A305"
         },
-        {
-          "name": "USDC-DAI SushiswapWorker",
-          "address": "0x54F579f2BE354120377a0189a7a2d952b5218e1f",
-          "pId": 11
-        },
-        {
-          "name": "WETH-DAI QuickswapWorker",
-          "address": "0xf07076656a823Cee19044299c1897546E878411E",
-          "pId": 15
-        },
-        {
-          "name": "USDC-DAI QuickswapWorker",
-          "address": "0xc8c2Bd12D62bCE3eceBe123768be66Fe041A2C8b",
-          "pId": 31
-        }
-      ]
-    },
-    {
-      "name": "Interest Bearing WETH",
-      "symbol": "ibWETH",
-      "address": "0x1AcCb917e6194799Ba5DB1ABF759D69498327e00",
-      "baseToken": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
-      "debtToken": "0x87843298192A13e2D7767B825c1D32f2AF80b2BF",
-      "config": "0x501bEe5A19a35d6FCC87F8512147871Df9c8EA9D",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0x67b41478A0970f505227C91E8457354Bb02C9ab4",
-        "Quickswap": "0xFD71616A82FDfC4bEC765266ab1aC8b5AFf28774"
+        "workers": [
+          {
+            "name": "WFTM-USDC Spookyswap Worker",
+            "address": "0xB5Ea261faE2Ef9298A165B723dB1049858a620Ee",
+            "pId": 1
+          }
+        ]
       },
-      "workers": [
-        {
-          "name": "WETH-DAI SushiswapWorker",
-          "address": "0xdF1fB62E02B7A6ED1675f3eBCefbe6FdB452152B",
-          "pId": 5
+      {
+        "name": "Interest Bearing fUSDT",
+        "symbol": "ibfUSDT",
+        "address": "0x19D2136B9719D701C3a8FB0Eae77c0cA8C4F35e8",
+        "baseToken": "0x049d68029688eAbF473097a2fC38ef61633A3C7A",
+        "debtToken": "0x2818475F591272384cD1eF4C9FfD301FD46154AB",
+        "config": "0x8B0424DEA43AA42741043982cbE9C43Dc4A25b9b",
+        "StrategyAddTwoSidesOptimal": {
+          "Spookyswap": "0x5856b292F326127A96bF84A23733cAb60cB7eFae"
         },
-        {
-          "name": "WBTC-WETH SushiswapWorker",
-          "address": "0xB884FBb89c3ae136f016B28E78251B177Bdd3D84",
-          "pId": 3
-        },
-        {
-          "name": "WETH-USDT SushiswapWorker",
-          "address": "0x301775aEd9dd027f62FDc81C0736311f007240c0",
-          "pId": 2
-        },
-        {
-          "name": "USDC-WETH SushiswapWorker",
-          "address": "0xf8F722b3D88C6ED85e6DA221ec0A57a4c6281537",
-          "pId": 1
-        },
-        {
-          "name": "WMATIC-WETH SushiswapWorker",
-          "address": "0x8700D34CCcefDE4cd915447593641447fd510650",
-          "pId": 0
-        },
-        {
-          "name": "WMATIC-WETH QuickswapWorker",
-          "address": "0x15A3ee0F3893c1be6Ba269d267083f0580518442",
-          "pId": 1
-        },
-        {
-          "name": "USDC-WETH QuickswapWorker",
-          "address": "0x218C5279AC916c0fD5fB37D76Ba6dF1833e2a019",
-          "pId": 7
-        },
-        {
-          "name": "WBTC-WETH QuickswapWorker",
-          "address": "0xe93971AAD3cca798E36CD2D9Df2484341c727B96",
-          "pId": 3
-        },
-        {
-          "name": "WETH-USDT QuickswapWorker",
-          "address": "0x14E0F8E4310e1f402993af5e1b135C14628f5187",
-          "pId": 104
-        },
-        {
-          "name": "WETH-DAI QuickswapWorker",
-          "address": "0x3e8601d3dA31f4bde2B469bc2182021B84b3852a",
-          "pId": 15
-        }
-      ]
-    },
-    {
-      "name": "Interest Bearing WBTC",
-      "symbol": "ibWBTC",
-      "address": "0x357c39A123d59dE96560821A0942A45119bd4065",
-      "baseToken": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
-      "debtToken": "0x0E14ceFe898Be6511588faE6601017b972E0A8e7",
-      "config": "0x8d22Fc484A7EA7DFF15F7bc9aED653c76126D6a8",
-      "StrategyAddTwoSidesOptimal": {
-        "Sushiswap": "0x5aDEbCf8b5d0E5C42b22E5A474f1fF4ef8DaF993",
-        "Quickswap": "0x241b0D65AAB4577ED31e21f63A7c2b7eB0852Bba"
+        "workers": [
+          {
+            "name": "WFTM-fUSDT Spookyswap Worker",
+            "address": "0x9E71de5Ad17773836403aa1529aC46F5db5B09E4",
+            "pId": 1
+          }
+        ]
       },
-      "workers": [
-        {
-          "name": "WBTC-WETH SushiswapWorker",
-          "address": "0xf4bF60b28C0Fb8C29633f24Bc4B666cf96500801",
-          "pId": 3
+      {
+        "name": "Interest Bearing DAI",
+        "symbol": "ibDAI",
+        "address": "0x00a7d45132Fbf46a99727674110E878b6c65AD50",
+        "baseToken": "0x8D11eC38a3EB5E956B052f67Da8Bdc9bef8Abf3E",
+        "debtToken": "0x08b7aDf08c891c9E4506fAedfB631e8e47bE6dA6",
+        "config": "0x9DFcDF42a3aAb33bA91Bd0D57d20515C63a5796f",
+        "StrategyAddTwoSidesOptimal": {
+          "Spookyswap": "0x5f08cfb66dBAb0fe79C4D0f546918A175Bb93f8A"
         },
-        {
-          "name": "WBTC-WETH QuickswapWorker",
-          "address": "0x7D3251110C78Ede0DA2ecD7527090235102a2655",
-          "pId": 3
+        "workers": [
+          {
+            "name": "WFTM-DAI Spookyswap Worker",
+            "address": "0xbE76b43D8dE6A1C8114aC878cef5D3998acA7dbF",
+            "pId": 3
+          }
+        ]
+      },
+      {
+        "name": "Interest Bearing ETH",
+        "symbol": "ibETH",
+        "address": "0x0a983ec7FEB0A21180dF8C4C944FC96E8a47483F",
+        "baseToken": "0x74b23882a30290451A17c44f4F05243b6b58C76d",
+        "debtToken": "0xc5FD566ADE24Ca80C156290aFBdb5f23a1D75443",
+        "config": "0xC39fD9817a7E93eb5609D263B07Ae427fa9D5291",
+        "StrategyAddTwoSidesOptimal": {
+          "spookyswap": "0xCd77963B49968DB6AF6FB3ad376912f20724d529"
         },
-        {
-          "name": "WBTC-USDC QuickswapWorker",
-          "address": "0x576fe5c7E7fb2c6E122a7089f8CfeA316d7A1aE3",
-          "pId": 21
-        }
-      ]
-    }
-  ],
-  "DevelopmentFund": "0x9324De62602EbD948254005E4d42ba8429404d5e",
-  "FeeDistribute": "0x8b8A20Cc807Fe9C768b201b29DAA3A48936D8dbe"
+        "workers": [
+          {
+            "name": "WFTM-ETH spookyswap Worker",
+            "address": "0x7DacA4b7B83F97b82FC2F22D66Ae668Ea5fEc7E7",
+            "pId": 5
+          }
+        ]
+      },
+      {
+        "name": "Interest Bearing BOO",
+        "symbol": "ibBOO",
+        "address": "0x149937DB2F42b58832089158fa4513526F7B0ADA",
+        "baseToken": "0x841FAD6EAe12c286d1Fd18d1d525DFfA75C7EFFE",
+        "debtToken": "0x30A37d3179862b696618c9FED1009f209d4A0f8b",
+        "config": "0xc555EB0E3d0a8d3eb491D94A6399B5bCD6683079",
+        "StrategyAddTwoSidesOptimal": {
+          "spookyswap": "0x47148346018f1642037f775E11B5c73f82519041"
+        },
+        "workers": [
+          {
+            "name": "WFTM-BOO Spooky Worker",
+            "address": "0xed58A328e5A22A6890615B1258F3e5cd613b5E2d",
+            "pId": 0
+          }
+        ]
+      }
+    ],
+    "MeowTreasury": "0xE6f7e30adc46D5BC75B4b81427DB08c073F34d9a",
+    "DevelopmentFund": "0xF767165F7f52E3c01D9bB8d94dB74d9Ba20Da2C7",
+    "FeeDistribute": "0xcF7dfAc568Ef324CBFB81a01D1Eb74C89aC811c2"
+  }
 }
