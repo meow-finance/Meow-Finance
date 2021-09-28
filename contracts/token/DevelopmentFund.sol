@@ -13,8 +13,8 @@ contract DevelopmentFund is Ownable {
   IERC20 public Meow;
   // Dev address.
   address public devaddr;
-  // Locked time for dev around 3 months.
-  uint256 public lockPeriod = 90 days;
+  // Locked time for dev around 2 years.
+  uint256 public lockPeriod = 365 days * 2;
   // How many Meow tokens locked.
   uint256 public lockedAmount;
   // last time that Meow tokens unlocked.
