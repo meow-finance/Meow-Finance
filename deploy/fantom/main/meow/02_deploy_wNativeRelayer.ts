@@ -14,6 +14,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   const wNative = process.env.wNative;
 
+  // ===== WNativeRelayer ===== //
+
+  console.log("_____________________________________________________________\n");
+  console.log(">>> Deploying WNativeRelayer");
+
   await deploy('WNativeRelayer', {
     from: deployer,
     args: [wNative],
@@ -22,7 +27,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   });
 
   const wNativeRelayer = await deployments.get('WNativeRelayer');
-  WriteLogs("wNativeRelayer: ", wNativeRelayer.address);
+  console.log("WNativeRelayer: ", wNativeRelayer.address);
 
   if ((await checkIsVerified(wNativeRelayer.address))) {
 
@@ -32,8 +37,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         wNative
       ],
     })
+    WriteLogs("wNativeRelayer: ", wNativeRelayer.address);
+
+  } else {
+    console.log("wNativeRelayer is verified.");
   }
 
+  // ========================== //
 
 };
 

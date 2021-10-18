@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 interface InterestModel {
   /// @dev Return the interest rate per second, using 1e18 as denom.

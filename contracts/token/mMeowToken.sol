@@ -15,7 +15,7 @@ contract mMeowToken is ERC20("mMeow", "mMEOW"), Ownable {
   uint256 public endDeposit;
   uint256 public startWithdraw;
   uint256 public depositTime = 2 weeks;
-  uint256 public lockTime = 16 weeks;
+  uint256 public lockTime = 4 weeks;
   bool public isStart;
 
   constructor(IERC20 _meow) public {
@@ -29,9 +29,16 @@ contract mMeowToken is ERC20("mMeow", "mMEOW"), Ownable {
     isStart = true;
   }
 
+  function isLockEnd() public view returns (bool) {
+    return block.timestamp > startWithdraw && isStart;
+  }
+
   // Enter the meow. Pay some meow. Earn some shares.
   function deposit(address _for, uint256 _amount) public {
-    require(isStart && block.timestamp < endDeposit, "mMeowToken::deposit:: not within the specified period");
+    require(
+      (isStart && block.timestamp < endDeposit) || isLockEnd(),
+      "mMeowToken::deposit:: not within the specified period"
+    );
     uint256 totalMeow = meow.balanceOf(address(this));
     uint256 totalShares = totalSupply();
     require(_amount <= meow.balanceOf(msg.sender), "mMeowToken::deposit:: insufficient amount");
@@ -47,11 +54,15 @@ contract mMeowToken is ERC20("mMeow", "mMEOW"), Ownable {
 
   // Leave the mMeow. Claim back your meow.
   function withdraw(uint256 _share) public {
-    require(isStart && block.timestamp > startWithdraw, "mMeowToken::withdraw:: not within the specified period");
+    require(isLockEnd(), "mMeowToken::withdraw:: not within the specified period");
     uint256 totalShares = totalSupply();
     uint256 what = _share.mul(meow.balanceOf(address(this))).div(totalShares);
     _burn(msg.sender, _share);
     meow.transfer(msg.sender, what);
     emit Withdraw(msg.sender, _share);
+  }
+
+  function burn(uint256 _amount) external {
+    _burn(msg.sender, _amount);
   }
 }

@@ -7,6 +7,7 @@ import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import "hardhat-deploy";
 import "solidity-coverage";
+import "hardhat-contract-sizer";
 
 module.exports = {
   defaultNetwork: 'fantommainnet',
@@ -39,93 +40,27 @@ module.exports = {
   solidity: {
     compilers: [
       {
-        version: "0.4.18",
-        settings: {
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        }
-      }
-      },
-      {
-        version: "0.5.16",
-        settings: {
-        optimizer: {
-          enabled: true,
-          runs: 200,
-        }
-      }
-      },
-      {
-        version: "0.6.0",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          }
-        }
-      },
-      {
         version: "0.6.12",
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 1,
           }
         }
       },
-      {
-        version: "0.6.4",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          }
-        }
-      },
-      {
-        version: '0.6.6',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 1
-          }
-          
-        },
-      },
-      {
-        version: "0.7.0",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          }
-        }
-      },
-      {
-        version: "0.7.1",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          }
-        }
-      },
-      {
-        version: "0.8.0",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          }
-        }
-      },
+
     ]
   },
   etherscan: {
     apiKey: API.ApiKeyFantom, //Fantom-FTMscan
     apiURL: "https://api.ftmscan.com/api"
 
+  },
+  contractSizer: {
+    alphaSort: true,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: true,
   },
   paths: {
     sources: './contracts',

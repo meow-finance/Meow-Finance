@@ -1181,7 +1181,7 @@ contract ERC20 is Context, IERC20 {
 
 // File: contracts/SushiToken.sol
 
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 // SushiToken with Governance.
 contract SushiToken is ERC20("SushiToken", "SUSHI"), Ownable {
@@ -1395,7 +1395,7 @@ contract SushiToken is ERC20("SushiToken", "SUSHI"), Ownable {
 
 // File: contracts/MasterChef.sol
 
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 interface IMigratorChef {
   // Perform LP token migration from legacy UniswapV2 to SushiSwap.

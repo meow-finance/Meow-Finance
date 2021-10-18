@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
@@ -36,6 +36,11 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     uint256 prize,
     uint256 left
   );
+  event UpdateConfig(IVaultConfig indexed config);
+  event UpdateDebtToken(address indexed debtToken, uint256 newPid);
+  event SetMeowMiningPoolId(uint256 indexed poolId);
+  event WithdrawReserve(address indexed to, uint256 value);
+  event ReduceReserve(uint256 value);
 
   /// @dev Flags for manage execution scope
   uint256 private constant _NOT_ENTERED = 1;
@@ -378,7 +383,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
     require(pos.debtShare > 0, "Vault::kill:: no debt");
-    // 2. Distribute ALPACAs in MeowMining to owner
+    // 2. Distribute MEOWs in MeowMining to owner
     _meowMiningWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
@@ -453,6 +458,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @param _config The new configurator address.
   function updateConfig(IVaultConfig _config) external onlyOwner {
     config = _config;
+    emit UpdateConfig(config);
   }
 
   /// @dev Update debtToken to a new address. Must only be called by owner.
@@ -466,11 +472,13 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
     debtToken = _debtToken;
     meowMiningPoolId = _newPid;
     SafeToken.safeApprove(debtToken, config.getMeowMiningAddr(), uint256(-1));
+    emit UpdateDebtToken(debtToken, meowMiningPoolId);
   }
 
   function setMeowMiningPoolId(uint256 _poolId) external onlyOwner {
     SafeToken.safeApprove(debtToken, config.getMeowMiningAddr(), uint256(-1));
     meowMiningPoolId = _poolId;
+    emit SetMeowMiningPoolId(meowMiningPoolId);
   }
 
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
@@ -479,12 +487,14 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   function withdrawReserve(address to, uint256 value) external onlyOwner nonReentrant {
     reservePool = reservePool.sub(value);
     SafeToken.safeTransfer(token, to, value);
+    emit WithdrawReserve(to, value);
   }
 
   /// @dev Reduce BaseToken reserve, effectively giving them to the depositors.
   /// @param value The number of BaseToken reserve to reduce.
   function reduceReserve(uint256 value) external onlyOwner {
     reservePool = reservePool.sub(value);
+    emit ReduceReserve(value);
   }
 
   /// @dev Fallback function to accept ETH. Workers will send ETH back the pool.

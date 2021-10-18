@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -21,20 +21,36 @@ contract MeowTreasury is Ownable {
   uint256 public lastUnlockTime;
   // Time that Meow tokens locked to.
   uint256 public lockTo;
+  /// list of whitelisted callers
+  mapping(address => bool) public whitelistedCallers;
+
+  event SetWhitelistedCaller(address indexed caller, address indexed addr, bool ok);
+  event Unlock(address indexed caller, address indexed treasury, uint256 amount);
+  event SetTreasury(address indexed treasury);
 
   constructor(IERC20 _Meow, address _treasury) public {
     Meow = _Meow;
     treasury = _treasury;
   }
 
+  modifier onlyTreasury() {
+    require(msg.sender == treasury, "MeowTreasury::onlyTreasury:: Forbidden");
+    _;
+  }
+
+  modifier onlyWhitelistedCaller() {
+    require(whitelistedCallers[msg.sender] == true, "MeowTreasury::onlyWhitelistedCaller:: !okCaller");
+    _;
+  }
+
   // Update treasury address by the previous treasury.
-  function setTreasury(address _treasury) public {
-    require(msg.sender == treasury, "MeowTreasury::setTreasury:: Forbidden.");
+  function setTreasury(address _treasury) external onlyTreasury {
     treasury = _treasury;
+    emit SetTreasury(treasury);
   }
 
   // Lock Meow tokens for a period of time.
-  function lock(uint256 _amount) public {
+  function lock(uint256 _amount) public onlyWhitelistedCaller {
     Meow.safeTransferFrom(msg.sender, address(this), _amount);
     unlock();
     if (_amount > 0) {
@@ -64,6 +80,15 @@ contract MeowTreasury is Ownable {
       }
       lockedAmount = lockedAmount.sub(amount);
       Meow.safeTransfer(treasury, amount);
+      emit Unlock(msg.sender, treasury, amount);
+    }
+  }
+
+  // Set whitelisted callers.
+  function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedCallers[callers[idx]] = ok;
+      emit SetWhitelistedCaller(msg.sender, callers[idx], ok);
     }
   }
 }

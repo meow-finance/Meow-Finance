@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 interface IDebtToken {
   function setOkHolders(address[] calldata _okHolders, bool _isOk) external;
