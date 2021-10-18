@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -42,6 +42,10 @@ contract MeowMining is Ownable, ReentrancyGuard {
   }
 
   uint256 private constant ACC_MEOW_PRECISION = 1e12;
+  // Max Meow can mint for users.
+  uint256 public MAX_MEOW_REWARD = 175000000e18;
+  // Max Meow can mint for dev.
+  uint256 public MAX_DEV_FUND = 17500000e18;
 
   // Meow Token.
   MeowToken public meow;
@@ -60,16 +64,18 @@ contract MeowMining is Ownable, ReentrancyGuard {
   uint256 public totalAllocPoint;
   // The block number when MEOW mining starts.
   uint256 public startTime;
-  // Time to lock Meow and release linearly.
+  // Time to lock Meow and release gradually.
   uint256 public lockPeriod = 90 days; // 3 months
   // Total Meow locked amount.
   uint256 public totalLock;
-  // Portion of tokens that user can harvest instantly.
+  // Portion of tokens that user can immediately harvest, lock the rest and release gradually.
   uint256 public preShare;
-  // Portion of tokens that have to lock and release linearly.
-  uint256 public lockShare;
-  // Development Fund address;
+  // Development Fund address.
   DevelopmentFund public developmentFund;
+  // Amount of Meow minted for dev.
+  uint256 public mintedDevFund;
+  // Amount of Meow minted for users.
+  uint256 public mintedMeowReward;
 
   event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
   event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
@@ -77,29 +83,31 @@ contract MeowMining is Ownable, ReentrancyGuard {
   event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
   event Unlock(address indexed user, uint256 indexed pid, uint256 amount);
   event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+  event SetMeowPerSecond(uint256 indexed meowPerSecond);
+  event AddPool(uint256 indexed allocPoint, address indexed stakeToken);
+  event SetPool(uint256 indexed pid, uint256 indexed allocPoint);
 
   constructor(
     MeowToken _meow,
     uint256 _meowPerSecond,
     uint256 _startTime,
     uint256 _preShare,
-    uint256 _lockShare,
     address _devaddr,
     DevelopmentFund _developmentFund
   ) public {
+    require(_preShare <= 10000, "MeowMining:: _preShare should less than or equal 10000.");
     totalAllocPoint = 0;
     meow = _meow;
     meowPerSecond = _meowPerSecond;
     startTime = block.timestamp > _startTime ? block.timestamp : _startTime;
     preShare = _preShare;
-    lockShare = _lockShare;
     devaddr = _devaddr;
     developmentFund = _developmentFund;
     meow.approve(address(_developmentFund), uint256(-1));
   }
 
   // Update dev address by the previous dev.
-  function setDev(address _devaddr) public {
+  function setDev(address _devaddr) external {
     require(msg.sender == devaddr, "MeowMining::setDev:: Forbidden.");
     devaddr = _devaddr;
   }
@@ -107,12 +115,14 @@ contract MeowMining is Ownable, ReentrancyGuard {
   function setMeowPerSecond(uint256 _meowPerSecond) external onlyOwner {
     massUpdatePools();
     meowPerSecond = _meowPerSecond;
+    emit SetMeowPerSecond(_meowPerSecond);
   }
 
   // Add a new Token to the pool. Can only be called by the owner.
   function addPool(uint256 _allocPoint, address _stakeToken) external onlyOwner {
     massUpdatePools();
     require(_stakeToken != address(0), "MeowMining::addPool:: not ZERO address.");
+    require(_stakeToken != address(meow), "MeowMining::addPool:: the _stakeToken is meow.");
     require(!isPoolExist[_stakeToken], "MeowMining::addPool:: stakeToken duplicate.");
     uint256 lastRewardTime = block.timestamp > startTime ? block.timestamp : startTime;
     totalAllocPoint = totalAllocPoint.add(_allocPoint);
@@ -120,6 +130,7 @@ contract MeowMining is Ownable, ReentrancyGuard {
       PoolInfo({ stakeToken: _stakeToken, allocPoint: _allocPoint, lastRewardTime: lastRewardTime, accMeowPerShare: 0 })
     );
     isPoolExist[_stakeToken] = true;
+    emit AddPool(_allocPoint, _stakeToken);
   }
 
   // Update the given pool's MEOW allocation point. Can only be called by the owner.
@@ -127,19 +138,11 @@ contract MeowMining is Ownable, ReentrancyGuard {
     massUpdatePools();
     totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
     poolInfo[_pid].allocPoint = _allocPoint;
+    emit SetPool(_pid, _allocPoint);
   }
 
   function poolLength() external view returns (uint256) {
     return poolInfo.length;
-  }
-
-  function canManualMint() public view returns (uint256) {
-    return meow.canManualMint();
-  }
-
-  function manualMint(address _to, uint256 _amount) external onlyOwner {
-    require(_amount <= (canManualMint()), "MeowMining::manualMint:: manual mint limit exceeded.");
-    meow.manualMint(_to, _amount);
   }
 
   // View function to see pending MEOWs on frontend.
@@ -167,17 +170,27 @@ contract MeowMining is Ownable, ReentrancyGuard {
   // Update reward of the given pool.
   function updatePool(uint256 _pid) public {
     PoolInfo storage pool = poolInfo[_pid];
-    if (block.timestamp > pool.lastRewardTime) {
+    if (block.timestamp > pool.lastRewardTime && pool.allocPoint > 0) {
       uint256 stakeTokenSupply = IERC20(pool.stakeToken).balanceOf(address(this));
       if (stakeTokenSupply > 0 && totalAllocPoint > 0) {
         uint256 time = block.timestamp.sub(pool.lastRewardTime);
         uint256 meowReward = time.mul(meowPerSecond).mul(pool.allocPoint).div(totalAllocPoint);
-        // Every 11.4286 Meow minted will mint 1 Meow for dev, come from 80/7 = 11.4286 use 10,000 to avoid floating.
-        uint256 devfund = meowReward.mul(10000).div(114286);
+        // Every 10 Meow minted will mint 1 Meow for dev.
+        uint256 devfund = meowReward.div(10);
+        if (mintedMeowReward.add(meowReward) > MAX_MEOW_REWARD) {
+          meowReward = MAX_MEOW_REWARD.sub(mintedMeowReward);
+        }
+        if (mintedDevFund.add(devfund) > MAX_DEV_FUND) {
+          devfund = MAX_DEV_FUND.sub(mintedDevFund);
+        }
         meow.mint(address(this), devfund);
         meow.mint(address(this), meowReward);
-        safeMeowTransfer(devaddr, devfund.mul(preShare).div(10000));
-        developmentFund.lock(devfund.mul(lockShare).div(10000));
+        mintedDevFund = mintedDevFund.add(devfund);
+        mintedMeowReward = mintedMeowReward.add(meowReward);
+        uint256 devPreAmt = devfund.mul(preShare).div(10000);
+        uint256 devLockAmt = devfund.sub(devPreAmt);
+        safeMeowTransfer(devaddr, devPreAmt);
+        developmentFund.lock(devLockAmt);
         pool.accMeowPerShare = pool.accMeowPerShare.add(meowReward.mul(ACC_MEOW_PRECISION).div(stakeTokenSupply));
       }
       pool.lastRewardTime = block.timestamp;
@@ -197,10 +210,12 @@ contract MeowMining is Ownable, ReentrancyGuard {
     updatePool(_pid);
     if (user.amount > 0) _harvest(_for, _pid);
     if (user.fundedBy == address(0)) user.fundedBy = msg.sender;
+    uint256 currentBal = IERC20(pool.stakeToken).balanceOf(address(this));
     IERC20(pool.stakeToken).safeTransferFrom(address(msg.sender), address(this), _amount);
-    user.amount = user.amount.add(_amount);
+    uint256 receivedAmount = IERC20(pool.stakeToken).balanceOf(address(this)) - currentBal;
+    user.amount = user.amount.add(receivedAmount);
     user.rewardDebt = user.amount.mul(pool.accMeowPerShare).div(ACC_MEOW_PRECISION);
-    emit Deposit(msg.sender, _pid, _amount);
+    emit Deposit(msg.sender, _pid, receivedAmount);
   }
 
   // Withdraw Staking tokens from MeowMining.
@@ -223,17 +238,17 @@ contract MeowMining is Ownable, ReentrancyGuard {
   ) internal {
     PoolInfo storage pool = poolInfo[_pid];
     UserInfo storage user = userInfo[_pid][_for];
-    require(user.fundedBy == msg.sender, "MeowMining::withdraw:: only funder.");
+    require(user.fundedBy == msg.sender || msg.sender == _for, "MeowMining::withdraw:: only funder.");
     require(user.amount >= _amount, "MeowMining::withdraw:: not good.");
     updatePool(_pid);
     _harvest(_for, _pid);
     user.amount = user.amount.sub(_amount);
     user.rewardDebt = user.amount.mul(pool.accMeowPerShare).div(ACC_MEOW_PRECISION);
-    if (user.amount == 0) user.fundedBy = address(0);
     if (pool.stakeToken != address(0)) {
-      IERC20(pool.stakeToken).safeTransfer(address(msg.sender), _amount);
+      IERC20(pool.stakeToken).safeTransfer(address(user.fundedBy), _amount);
     }
-    emit Withdraw(msg.sender, _pid, user.amount);
+    if (user.amount == 0) user.fundedBy = address(0);
+    emit Withdraw(msg.sender, _pid, _amount);
   }
 
   // Harvest MEOWs earn from the pool.
@@ -251,7 +266,7 @@ contract MeowMining is Ownable, ReentrancyGuard {
     require(user.amount > 0, "MeowMining::harvest:: nothing to harvest.");
     uint256 pending = user.amount.mul(pool.accMeowPerShare).div(ACC_MEOW_PRECISION).sub(user.rewardDebt);
     uint256 preAmount = pending.mul(preShare).div(10000);
-    uint256 lockAmount = pending.mul(lockShare).div(10000);
+    uint256 lockAmount = pending.sub(preAmount);
     lock(_pid, _to, lockAmount);
     require(preAmount <= meow.balanceOf(address(this)), "MeowMining::harvest:: not enough Meow.");
     safeMeowTransfer(_to, preAmount);
@@ -287,7 +302,7 @@ contract MeowMining is Ownable, ReentrancyGuard {
   }
 
   // Unlock the locked reward.
-  function unlock(uint256 _pid) public {
+  function unlock(uint256 _pid) external {
     unlock(_pid, msg.sender);
   }
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
@@ -301,6 +301,10 @@ contract QuickswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, IQui
     require(
       _maxReinvestBountyBps >= reinvestBountyBps,
       "QuickswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
+    );
+    require(
+      _maxReinvestBountyBps <= 10000,
+      "QuickswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps higher than harvested reward"
     );
     maxReinvestBountyBps = _maxReinvestBountyBps;
   }

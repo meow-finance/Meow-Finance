@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -9,18 +9,18 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract MeowToken is ERC20("MeowToken", "MEOW"), Ownable {
   // MaxTotalSupply 250m.
   uint256 private constant CAP = 250000000e18;
-  // Meow mining 200m (80% of 250m).
-  uint256 public meowMining = 200000000e18;
+  // Meow multichain 25m (10% of 250m).
+  uint256 public meowMultichain = 25000000e18;
   // Meow reserve 32.5m (13% of 250m).
   uint256 public reserve = 32500000e18;
 
-  uint256 public manualMinted = 0;
+  event Mint(address indexed to, uint256 amount);
+  event Burn(address indexed from, uint256 amount);
 
-  // Timestamp that can use manual mint function again next time.
-  uint256 public manualMintAllowedAfter;
-
-  // Minimum time between manual mint.
-  uint256 public minimumTimeBetweenManualMint = 120 days; // 4 months
+  constructor() public {
+    mint(msg.sender, meowMultichain);
+    mint(msg.sender, reserve);
+  }
 
   function cap() public pure returns (uint256) {
     return CAP;
@@ -30,29 +30,13 @@ contract MeowToken is ERC20("MeowToken", "MEOW"), Ownable {
     require(totalSupply().add(_amount) <= cap(), "MeowToken::mint:: cap exceeded.");
     _mint(_to, _amount);
     _moveDelegates(address(0), _delegates[_to], _amount);
-  }
-
-  function canManualMint() public view returns (uint256) {
-    uint256 miningMinted = totalSupply().sub(reserve); // Totalsupply =  MeowMining + DevFund + reserve.
-    // Every 11.4286 Meow minted will mint 1 Meow for dev, come from 80/7 = 11.4286 use 10,000 to avoid floating.
-    uint256 devFund = miningMinted.mul(10000).div(114286);
-    return (uint256(200000000e18).sub((miningMinted).sub(devFund))).div(5); // 20% of (MeowMining - DevFund)
-  }
-
-  function manualMint(address _to, uint256 _amount) public onlyOwner {
-    require(block.timestamp >= manualMintAllowedAfter, "MeowToken::manualMint:: manualMint not allowed yet.");
-    require(_amount <= (canManualMint()), "MeowToken::manualMint:: manual mint limit exceeded.");
-    manualMintAllowedAfter = block.timestamp.add(minimumTimeBetweenManualMint);
-    manualMinted = manualMinted.add(_amount);
-    mint(_to, _amount);
-  }
-
-  function burnFrom(address _account, uint256 _amount) external onlyOwner {
-    _burn(_account, _amount);
+    emit Mint(_to, _amount);
   }
 
   function burn(uint256 _amount) external {
     _burn(msg.sender, _amount);
+    _moveDelegates(_delegates[msg.sender], address(0), _amount);
+    emit Burn(msg.sender, _amount);
   }
 
   function transfer(address recipient, uint256 amount) public virtual override returns (bool) {

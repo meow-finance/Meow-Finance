@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
@@ -21,20 +21,36 @@ contract DevelopmentFund is Ownable {
   uint256 public lastUnlockTime;
   // Time that Meow tokens locked to.
   uint256 public lockTo;
+  /// list of whitelisted callers
+  mapping(address => bool) public whitelistedCallers;
 
-  constructor(IERC20 _Meow) public {
+  event SetWhitelistedCaller(address indexed caller, address indexed addr, bool ok);
+  event Unlock(address indexed caller, address indexed devaddr, uint256 amount);
+  event SetDev(address indexed devaddr);
+
+  constructor(IERC20 _Meow, address _devaddr) public {
     Meow = _Meow;
-    devaddr = msg.sender;
-  }
-
-  // Update dev address by the previous dev.
-  function setDev(address _devaddr) public {
-    require(msg.sender == devaddr, "DevelopmentFund::setDev:: Forbidden.");
     devaddr = _devaddr;
   }
 
+  modifier onlyDev() {
+    require(msg.sender == devaddr, "DevelopmentFund::onlyDev:: Forbidden");
+    _;
+  }
+
+  modifier onlyWhitelistedCaller() {
+    require(whitelistedCallers[msg.sender] == true, "DevelopmentFund::onlyWhitelistedCaller:: !okCaller");
+    _;
+  }
+
+  // Update dev address by the previous dev.
+  function setDev(address _devaddr) external onlyDev {
+    devaddr = _devaddr;
+    emit SetDev(devaddr);
+  }
+
   // Lock Meow tokens for a period of time.
-  function lock(uint256 _amount) public {
+  function lock(uint256 _amount) external onlyWhitelistedCaller {
     Meow.safeTransferFrom(msg.sender, address(this), _amount);
     unlock();
     if (_amount > 0) {
@@ -64,6 +80,15 @@ contract DevelopmentFund is Ownable {
       }
       lockedAmount = lockedAmount.sub(amount);
       Meow.safeTransfer(devaddr, amount);
+      emit Unlock(msg.sender, devaddr, amount);
+    }
+  }
+
+  // Set whitelisted callers.
+  function setWhitelistedCallers(address[] calldata callers, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < callers.length; idx++) {
+      whitelistedCallers[callers[idx]] = ok;
+      emit SetWhitelistedCaller(msg.sender, callers[idx], ok);
     }
   }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -14,6 +14,15 @@ contract TripleSlopeModel is Ownable {
   uint256 public MAX_INTEREST_SLOPE_1;
   uint256 public MAX_INTEREST_SLOPE_2;
   uint256 public MAX_INTEREST_SLOPE_3;
+
+  event SetParams(
+    uint256 indexed ceil1,
+    uint256 maxInterest1,
+    uint256 indexed ceil2,
+    uint256 maxInterest2,
+    uint256 indexed ceil3,
+    uint256 maxInterest3
+  );
 
   constructor(
     uint256 _ceil_1,
@@ -40,6 +49,7 @@ contract TripleSlopeModel is Ownable {
     MAX_INTEREST_SLOPE_1 = _max_Interest_1;
     MAX_INTEREST_SLOPE_2 = _max_Interest_2;
     MAX_INTEREST_SLOPE_3 = _max_Interest_3;
+    emit SetParams(_ceil_1, _max_Interest_1, _ceil_2, _max_Interest_2, _ceil_3, _max_Interest_3);
   }
 
   // Return Utilization.
