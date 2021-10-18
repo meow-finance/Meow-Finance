@@ -5,6 +5,7 @@ import { ethers } from 'hardhat';
 import hre from "hardhat";
 dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` });
 import { checkIsVerified, WriteLogs } from '../../../../global/function';
+import { FixedNumber } from "ethers";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
@@ -16,10 +17,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const MeowTokenContract = await ethers.getContractAt('MeowToken', MeowToken.address);
     const MEOW_PER_SECOND = ethers.utils.parseEther('0');
     const START_TIME = 0;
-    const PRE_SHARE = 3000;
-    const LOCK_SHARE = 7000;
+    const PRE_SHARE = 3000; // Lock 30%
     const DEV = process.env.DEV;
     const TREASURY = process.env.TREASURY;
+
+    console.log(">>> Check MeowTokens balance");
+    console.log(ethers.utils.formatEther((await MeowTokenContract.balanceOf(deployer)).toString()));
+
+    // ===== Meow Treasury ===== //
+
+    console.log("_____________________________________________________________\n");
+    console.log(">>> Deploying Meow Treasury");
 
     await deploy('MeowTreasury', {
         from: deployer,
@@ -29,6 +37,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     const meowTreasury = await deployments.get('MeowTreasury');
+    const meowTreasuryContract = await ethers.getContractAt('MeowTreasury', meowTreasury.address);
     console.log("MeowTreasury: ", meowTreasury.address);
 
     if (!(await checkIsVerified(meowTreasury.address))) {
@@ -43,6 +52,40 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         console.log("MeowTreasury is verified.");
     }
 
+    console.log(">>> Check MeowTreasury whitelisted deployer");
+    let isTreasuryWhitelisted = await meowTreasuryContract.whitelistedCallers(deployer);
+    console.log(isTreasuryWhitelisted);
+    if (!isTreasuryWhitelisted) {
+        console.log("Set deployer to MeowTreasury whitelisted.");
+        await meowTreasuryContract.setWhitelistedCallers([deployer], true, { gasLimit: '500000' });
+        console.log("Check MeowTreasury whitelisted deployer");
+        isTreasuryWhitelisted = await meowTreasuryContract.whitelistedCallers(deployer);
+        console.log(isTreasuryWhitelisted);
+        console.log("✅ Done");
+    }
+    const reserve = ethers.utils.formatEther(await MeowTokenContract.reserve());
+    console.log("Reserve: ", reserve.toString());
+    const reserveToLock = FixedNumber.from(reserve).divUnsafe(FixedNumber.from(2));
+    console.log("Reserve to lock: ", reserveToLock.toString());
+
+    console.log("Approve Meow to MeowTreasury");
+    await MeowTokenContract.approve(meowTreasury.address, reserveToLock, { gasLimit: '500000' });
+
+    console.log(">>> Lock reserve 50% to MeowTreasury.");
+    await meowTreasuryContract.lock(reserveToLock, { gasLimit: '500000' });
+
+    console.log("Check deployer MeowTokens balance");
+    console.log(ethers.utils.formatEther((await MeowTokenContract.balanceOf(deployer)).toString()));
+    console.log("Check MeowTreasury MeowTokens balance");
+    console.log(ethers.utils.formatEther((await MeowTokenContract.balanceOf(meowTreasury.address)).toString()));
+
+    // ============================ //
+
+    // ===== Development Fund ===== //
+
+    console.log("_____________________________________________________________\n");
+    console.log(">>> Deploying DevelopmentFund");
+
     await deploy('DevelopmentFund', {
         from: deployer,
         args: [MeowToken.address, DEV],
@@ -51,6 +94,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     });
 
     const developmentFund = await deployments.get('DevelopmentFund');
+    const developmentFundContract = await ethers.getContractAt('DevelopmentFund', developmentFund.address);
     console.log("DevelopmentFund: ", developmentFund.address);
 
     if (!(await checkIsVerified(developmentFund.address))) {
@@ -65,13 +109,31 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         console.log("DevelopmentFund is verified.");
     }
 
+    console.log(">>> Check DevelopmentFund whitelisted deployer");
+    let isDevFundWhitelisted = await developmentFundContract.whitelistedCallers(deployer);
+    console.log(isDevFundWhitelisted);
+    if (!isDevFundWhitelisted) {
+        console.log("Set deployer to DevelopmentFund whitelisted.");
+        await developmentFundContract.setWhitelistedCallers([deployer], true, { gasLimit: '500000' });
+        console.log("Check DevelopmentFund whitelisted deployer");
+        isDevFundWhitelisted = await developmentFundContract.whitelistedCallers(deployer);
+        console.log(isDevFundWhitelisted);
+        console.log("✅ Done");
+    }
+
+    // ========================//
+
+    // ===== Meow Mining ===== //
+
+    console.log("_____________________________________________________________\n");
+    console.log(">>> Deploying MeowMining");
+
     await deploy('MeowMining', {
         from: deployer,
         args: [MeowToken.address,
             MEOW_PER_SECOND,
             START_TIME,
             PRE_SHARE,
-            LOCK_SHARE,
             DEV,
         developmentFund.address
         ],
@@ -90,7 +152,6 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
                 MEOW_PER_SECOND,
                 START_TIME,
                 PRE_SHARE,
-                LOCK_SHARE,
                 DEV,
                 developmentFund.address
             ],
@@ -100,16 +161,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         console.log("MeowMining is verified.");
     }
 
-    console.log(">> Transferring ownership of MeowToken from deployer to MeowMining");
+    console.log(">>> Transferring ownership of MeowToken from deployer to MeowMining");
     await MeowTokenContract.transferOwnership(meowMining.address, { gasLimit: '500000' });
     console.log("✅ Done");
 
-    console.log(">> Lock MeowToken in MeowTreasury"); // Mint 13% of 250m and locks for 50% of 13% = 16.25m
-    const MeowTreasuryContract = await ethers.getContractAt('MeowTreasury', meowTreasury.address);
-    await MeowTokenContract.approve(meowTreasury.address, ethers.utils.parseEther('16250000'), { gasLimit: '500000' });
-    await new Promise(resolve => setTimeout(resolve, 20000));
-    await MeowTreasuryContract.lock( ethers.utils.parseEther('16250000'), { gasLimit: '500000' });
-    console.log("✅ Done");
+    console.log(">>> Check DevelopmentFund whitelisted MeowMining");
+    isDevFundWhitelisted = await developmentFundContract.whitelistedCallers(meowMining.address);
+    console.log(isDevFundWhitelisted);
+    if (!isDevFundWhitelisted) {
+        console.log("Set MeowMining to DevelopmentFund whitelisted.");
+        await developmentFundContract.setWhitelistedCallers([meowMining.address], true, { gasLimit: '500000' });
+        console.log("Check DevelopmentFund whitelisted MeowMining");
+        isDevFundWhitelisted = await developmentFundContract.whitelistedCallers(meowMining.address);
+        console.log(isDevFundWhitelisted);
+        console.log("✅ Done");
+    }
+
+    // ======================= //
 
 };
 

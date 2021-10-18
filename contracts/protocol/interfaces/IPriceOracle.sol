@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 interface PriceOracle {
   /// @dev Return the wad price of token0/token1, multiplied by 1e18

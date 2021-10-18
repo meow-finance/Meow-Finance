@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -38,20 +38,25 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
   mapping(uint256 => mapping(address => UserInfo)) public userInfo;
   // Check pool exist by Reward Token.
   mapping(address => bool) public isPoolExist;
+  // Check Stake Token exist.
+  mapping(address => bool) public isStakeToken;
 
   event Deposit(address indexed user, uint256 indexed pid, uint256 amount);
   event Withdraw(address indexed user, uint256 indexed pid, uint256 amount);
   event Harvest(address indexed user, uint256 indexed pid, uint256 amount);
   event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
+  event SetParams(address wNative, address wNativeRelayer);
+  event AddPool(address indexed stakeToken, address indexed rewardToken);
 
   constructor(address _wNative, address _wNativeRelayer) public {
     wNative = _wNative;
     wNativeRelayer = _wNativeRelayer;
   }
 
-  function setParams(address _wNative, address _wNativeRelayer) public onlyOwner {
+  function setParams(address _wNative, address _wNativeRelayer) external onlyOwner {
     wNative = _wNative;
     wNativeRelayer = _wNativeRelayer;
+    emit SetParams(_wNative, _wNativeRelayer);
   }
 
   function poolLength() external view returns (uint256) {
@@ -63,6 +68,9 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
     massUpdatePools();
     require(_stakeToken != address(0), "FeeDistribute::addPool:: not ZERO address.");
     require(!isPoolExist[_rewardToken], "FeeDistribute::addPool:: pool exist.");
+    require(!isStakeToken[_rewardToken], "FeeDistribute::addPool:: reward token is already used as stake token.");
+    require(!isPoolExist[_stakeToken], "FeeDistribute::addPool:: stake token is already used as reward token");
+    require(_stakeToken != _rewardToken, "FeeDistribute::addPool:: _stakeToken token same as _rewardtoken");
     poolInfo.push(
       PoolInfo({
         stakeToken: _stakeToken,
@@ -74,6 +82,8 @@ contract FeeDistribute is Ownable, ReentrancyGuard {
       })
     );
     isPoolExist[_rewardToken] = true;
+    isStakeToken[_stakeToken] = true;
+    emit AddPool(_stakeToken, _rewardToken);
   }
 
   // Update reward for all pools.

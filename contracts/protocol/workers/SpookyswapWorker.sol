@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.6;
+pragma solidity 0.6.12;
 
 import "@openzeppelin/contracts-ethereum-package/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts-ethereum-package/contracts/token/ERC20/IERC20.sol";
@@ -22,10 +22,16 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
   using SafeMath for uint256;
 
   /// @notice Events
-  event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
+  event Work(uint256 indexed id, address indexed owner, uint256 debt, address indexed strat);
   event AddShare(uint256 indexed id, uint256 share);
   event RemoveShare(uint256 indexed id, uint256 share);
   event Liquidate(uint256 indexed id, uint256 wad);
+  event Reinvest(address indexed caller, uint256 reward, uint256 bounty);
+  event SetReinvestBountyBps(address indexed caller, uint256 indexed reinvestBountyBps);
+  event SetMaxReinvestBountyBps(address indexed caller, uint256 indexed maxReinvestBountyBps);
+  event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
+  event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
+  event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
 
   /// @notice Configuration variables
   ISpookyMasterChef public override masterChef;
@@ -134,6 +140,13 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     return balance.mul(totalShare).div(totalBalance);
   }
 
+  function getAmountOutMin(uint256 _amountIn, address[] memory _path) public view returns (uint256) {
+    uint256 len = _path.length;
+    uint256[] memory amountsOut = router.getAmountsOut(_amountIn, _path);
+    uint256 amountOutMin = amountsOut[len - 1].mul(95).div(100);
+    return amountOutMin;
+  }
+
   /// @dev Re-invest whatever this worker has earned back to staked LP tokens.
   function reinvest() external override onlyEOA onlyReinvestor nonReentrant {
     // 1. Approve tokens
@@ -159,8 +172,10 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
         path[1] = address(wNative);
         path[2] = address(baseToken);
       }
+      uint256 amountIn = reward.sub(bounty);
+      uint256 amountOutMin = getAmountOutMin(amountIn, path);
+      router.swapExactTokensForTokens(amountIn, amountOutMin, path, address(this), now);
     }
-    router.swapExactTokensForTokens(reward.sub(bounty), 0, path, address(this), now);
 
     // 5. Use add Token strategy to convert all BaseToken to LP tokens.
     baseToken.safeTransfer(address(addStrat), baseToken.myBalance());
@@ -202,6 +217,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     _addShare(id);
     // 4. Return any remaining BaseToken back to the operator.
     baseToken.safeTransfer(msg.sender, baseToken.myBalance());
+    emit Work(id, user, debt, strat);
   }
 
   /// @dev Return maximum output given the input amount and the status of Uniswap reserves.
@@ -291,6 +307,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
       "SpookyswapWorker::setReinvestBountyBps:: _reinvestBountyBps exceeded maxReinvestBountyBps"
     );
     reinvestBountyBps = _reinvestBountyBps;
+    emit SetReinvestBountyBps(msg.sender, reinvestBountyBps);
   }
 
   /// @dev Set Max reinvest reward for set upper limit reinvest bounty.
@@ -300,7 +317,12 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
       _maxReinvestBountyBps >= reinvestBountyBps,
       "SpookyswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps lower than reinvestBountyBps"
     );
+    require(
+      _maxReinvestBountyBps <= 500,
+      "SpookyswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceed 5%"
+    );
     maxReinvestBountyBps = _maxReinvestBountyBps;
+    emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
   }
 
   /// @dev Set the given strategies' approval status.
@@ -310,6 +332,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     uint256 len = strats.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okStrats[strats[idx]] = isOk;
+      emit SetStrategyOK(msg.sender, strats[idx], isOk);
     }
   }
 
@@ -320,6 +343,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     uint256 len = reinvestors.length;
     for (uint256 idx = 0; idx < len; idx++) {
       okReinvestors[reinvestors[idx]] = isOk;
+      emit SetReinvestorOK(msg.sender, reinvestors[idx], isOk);
     }
   }
 
@@ -329,5 +353,6 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
   function setCriticalStrategies(IStrategy _addStrat, IStrategy _liqStrat) external onlyOwner {
     addStrat = _addStrat;
     liqStrat = _liqStrat;
+    emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
   }
 }

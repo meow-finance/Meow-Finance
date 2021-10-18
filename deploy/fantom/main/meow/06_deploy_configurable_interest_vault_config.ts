@@ -18,6 +18,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const WNATV_ADDR = process.env.wNative;
   const WNATV_RLY_ADDR = await deployments.get("WNativeRelayer");
 
+  // ===== ConfigurableInterestVaultConfig ===== //
+
   const VAULT_CONFIGS = [
     {
       VAULT_NAME: "FTM",
@@ -51,7 +53,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   for (let i = 0; i < VAULT_CONFIGS.length; i++) {
     console.log("_____________________________________________________________\n");
-    console.log(`Deploying an ${VAULT_CONFIGS[i].VAULT_NAME} configurableInterestVaultConfig contract`);
+    console.log(`>>> Deploying an ${VAULT_CONFIGS[i].VAULT_NAME} configurableInterestVaultConfig contract`);
     const ConfigurableInterestVaultConfig = (await ethers.getContractFactory(
       'ConfigurableInterestVaultConfig',
       (await ethers.getSigners())[0]
@@ -64,15 +66,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     await configurableInterestVaultConfig.deployed();
     const implAddr = await hre.upgrades.erc1967.getImplementationAddress(configurableInterestVaultConfig.address);
     await deployments.save(`ConfigurableInterestVaultConfig_${VAULT_CONFIGS[i].VAULT_NAME}`, { address: configurableInterestVaultConfig.address, implementation: implAddr } as DeploymentSubmission)
-    console.log(`Deployed ${VAULT_CONFIGS[i].VAULT_NAME} ConfigurableInterestVaultConfig at ${configurableInterestVaultConfig.address}`);
+    console.log(`>>> Deployed ${VAULT_CONFIGS[i].VAULT_NAME} ConfigurableInterestVaultConfig at ${configurableInterestVaultConfig.address}`);
     if (!(await checkIsVerified(implAddr))) {
       console.log("impl: ", implAddr);
       await hre.run("verify:verify", {
         address: implAddr,
       })
+      WriteLogs(`ConfigurableInterestVaultConfig_${VAULT_CONFIGS[i].VAULT_NAME}: `, "Proxy: ", configurableInterestVaultConfig.address, "impl: ", implAddr);
+    } else {
+      console.log(`ConfigurableInterestVaultConfig_${VAULT_CONFIGS[i].VAULT_NAME} impl is verified.`);
     }
-    WriteLogs(`ConfigurableInterestVaultConfig_${VAULT_CONFIGS[i].VAULT_NAME}: `, "Proxy: ", configurableInterestVaultConfig.address, "impl: ", implAddr);
   }
+
+  // =========================================== //
 
 };
 
