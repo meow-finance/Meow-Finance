@@ -2,7 +2,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 import { ethers } from 'hardhat';
 import hre from "hardhat";
-import { Wait } from '../../../../global/function';
+import { Wait, IsFork } from '../../../../global/function';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
@@ -104,7 +104,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       if (owner == deployer) {
         console.log(`Transferring ownership of ${VAULTS[i].WORKERS[j].WORKER_NAME} SpookyswapWorker to TIMELOCK`);
         await workerContract.transferOwnership(TIMELOCK.address, { gasLimit: '500000' });
-        await new Promise(resolve => setTimeout(resolve, 90000));
+        if (!IsFork()) {
+          await new Promise(resolve => setTimeout(resolve, 90000));
+        }
         const newOwner = await workerContract.owner();
         console.log(`${VAULTS[i].WORKERS[j].WORKER_NAME} SpookyswapWorker new owner:`, newOwner);
         console.log("✅ Done");
