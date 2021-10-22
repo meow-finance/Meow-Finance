@@ -107,7 +107,8 @@
       "WorkerConfig": "0x8157Cf8e31a0546723AAAb045916a99ce164963D"
     },
     "Oracle": {
-      "SimplePriceOracle": "0x26440B83233998F5a11AecFfE0D5A7C774DF7D19"
+      "SimplePriceOracle": "0x26440B83233998F5a11AecFfE0D5A7C774DF7D19",
+      "Oracle": "0x6452a90d0bFa979B4B42e6576EC2cA971C4FdB61"
     },
     "Vaults": [
       {

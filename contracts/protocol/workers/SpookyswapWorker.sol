@@ -158,7 +158,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
       amountOut = oracle.consult(address(factory), _path[i], _amountIn, _path[i + 1]);
       _amountIn = amountOut;
     }
-    uint256 amountOutMin = amountOut.mul(slippage).div(10000);
+    uint256 amountOutMin = amountOut.mul(uint256(10000).sub(slippage)).div(10000);
     return amountOutMin;
   }
 
