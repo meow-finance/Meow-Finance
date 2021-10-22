@@ -14,6 +14,7 @@ import "../apis/IUniswapV2Router02.sol";
 import "../interfaces/IStrategy.sol";
 import "../interfaces/ISpookyWorker.sol";
 import "../interfaces/ISpookyMasterChef.sol";
+import "../interfaces/IOracle.sol";
 import "../../utils/SafeToken.sol";
 
 contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISpookyWorker {
@@ -32,6 +33,9 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
   event SetReinvestorOK(address indexed caller, address indexed reinvestor, bool indexed isOk);
   event SetStrategyOK(address indexed caller, address indexed strategy, bool indexed isOk);
   event SetCriticalStrategy(address indexed caller, IStrategy indexed addStrat, IStrategy indexed liqStrat);
+  event SetSlippage(address indexed caller, uint256 indexed slippage);
+  event SetOracle(address indexed caller, IOracle indexed oracle);
+  event SetSpookyFee(address indexed caller, uint256 indexed fee);
 
   /// @notice Configuration variables
   ISpookyMasterChef public override masterChef;
@@ -59,6 +63,9 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
   uint256 public fee;
   uint256 public feeDenom;
 
+  IOracle public oracle;
+  uint256 public slippage;
+
   function initialize(
     address _operator,
     address _baseToken,
@@ -67,7 +74,8 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     uint256 _pid,
     IStrategy _addStrat,
     IStrategy _liqStrat,
-    uint256 _reinvestBountyBps
+    uint256 _reinvestBountyBps,
+    IOracle _oracle
   ) external initializer {
     OwnableUpgradeSafe.__Ownable_init();
     ReentrancyGuardUpgradeSafe.__ReentrancyGuard_init();
@@ -92,8 +100,10 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     okStrats[address(liqStrat)] = true;
     reinvestBountyBps = _reinvestBountyBps;
     maxReinvestBountyBps = 500;
+    oracle = _oracle;
     fee = 9980;
     feeDenom = 10000;
+    slippage = 500;
 
     require(
       reinvestBountyBps <= maxReinvestBountyBps,
@@ -141,9 +151,14 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
   }
 
   function getAmountOutMin(uint256 _amountIn, address[] memory _path) public view returns (uint256) {
-    uint256 len = _path.length;
-    uint256[] memory amountsOut = router.getAmountsOut(_amountIn, _path);
-    uint256 amountOutMin = amountsOut[len - 1].mul(95).div(100);
+    uint256 length = _path.length;
+    uint256 amountOut;
+    require(length >= 2, "SpookyswapWorker::getAmountOutMin:: bad length.");
+    for (uint256 i = 0; i < length - 1; ++i) {
+      amountOut = oracle.consult(address(factory), _path[i], _amountIn, _path[i + 1]);
+      _amountIn = amountOut;
+    }
+    uint256 amountOutMin = amountOut.mul(slippage).div(10000);
     return amountOutMin;
   }
 
@@ -319,7 +334,7 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     );
     require(
       _maxReinvestBountyBps <= 500,
-      "SpookyswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceed 5%"
+      "SpookyswapWorker::setMaxReinvestBountyBps:: _maxReinvestBountyBps exceeded 5%"
     );
     maxReinvestBountyBps = _maxReinvestBountyBps;
     emit SetMaxReinvestBountyBps(msg.sender, maxReinvestBountyBps);
@@ -354,5 +369,27 @@ contract SpookyswapWorker is OwnableUpgradeSafe, ReentrancyGuardUpgradeSafe, ISp
     addStrat = _addStrat;
     liqStrat = _liqStrat;
     emit SetCriticalStrategy(msg.sender, addStrat, liqStrat);
+  }
+
+  /// @dev Set slippage for swapping in reinvest function.
+  /// @param _slippage The new slippage.
+  function setSlippage(uint256 _slippage) external onlyOwner {
+    require(_slippage <= 2000, "SpookyswapWorker::setSlippage:: slippage exceeded 20%");
+    slippage = _slippage;
+    emit SetSlippage(msg.sender, slippage);
+  }
+
+  /// @dev Set oracle for getAmountOut in reinvest function.
+  /// @param _oracle The new oracle.
+  function setOracle(IOracle _oracle) external onlyOwner {
+    require(address(_oracle) != address(0), "SpookyswapWorker::setOracle:: not ZERO address.");
+    oracle = _oracle;
+    emit SetOracle(msg.sender, oracle);
+  }
+
+  function setSpookyFee(uint256 _fee) external onlyOwner {
+    require(_fee <= 10000, "SpookyswapWorker::setSpookyFee:: amount exceeded 100%");
+    fee = _fee;
+    emit SetSpookyFee(msg.sender, fee);
   }
 }
