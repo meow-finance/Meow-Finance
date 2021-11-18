@@ -14,5 +14,8 @@ interface IMMeowFee {
 
   function mMeowValue(address _user) external view returns (uint256);
 
-  function calMMeowFee(address _user) external view returns (uint256);
+  function calMMeowFee(address _baseToken, uint256 _health, address _user ) external view returns (uint256,uint256,uint256);
+
+  function calMMeowAmount(address _baseToken, uint256 _baseTokenAmount) external view returns (uint256);
+
 }
