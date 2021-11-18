@@ -8,10 +8,12 @@ import "@openzeppelin/contracts-ethereum-package/contracts/Initializable.sol";
 import "./interfaces/IVaultConfig.sol";
 import "./interfaces/IWorkerConfig.sol";
 import "./interfaces/ITripleSlopeModel.sol";
+import "./interfaces/IMMeowFee.sol";
 
 contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   /// @notice Events
   event SetWhitelistedCaller(address indexed caller, address indexed addr, bool ok);
+  event SetWhitelistedBot(address indexed caller, address indexed addr, bool ok);
   event SetParams(
     address indexed caller,
     uint256 minDebtSize,
@@ -24,6 +26,7 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   );
   event SetWorkers(address indexed caller, address worker, address workerConfig);
   event SetMaxKillBps(address indexed caller, uint256 maxKillBps);
+  event SetMMeowFee(address indexed mMeowFee);
 
   /// The minimum debt size per position.
   uint256 public override minDebtSize;
@@ -43,8 +46,12 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
   address public meowMining;
   /// maximum killBps
   uint256 public maxKillBps;
+  /// address of MMeowFee contract
+  address public override mMeowFee;
   /// list of whitelisted callers
   mapping(address => bool) public override whitelistedCallers;
+  /// list of whitelisted bots
+  mapping(address => bool) public override whitelistedBots;
 
   function initialize(
     uint256 _minDebtSize,
@@ -97,6 +104,12 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     );
   }
 
+  function setmMeowFee(address _mMeowFee) external onlyOwner {
+    require(_mMeowFee != address(0), "setmMeowFee should not zero address");
+    mMeowFee = _mMeowFee;
+    emit SetMMeowFee(mMeowFee);
+  }
+
   /// @dev Set the configuration for the given workers. Must only be called by the owner.
   function setWorkers(address[] calldata addrs, IWorkerConfig[] calldata configs) external onlyOwner {
     require(addrs.length == configs.length, "ConfigurableInterestVaultConfig::setWorkers:: bad length");
@@ -111,6 +124,14 @@ contract ConfigurableInterestVaultConfig is IVaultConfig, OwnableUpgradeSafe {
     for (uint256 idx = 0; idx < callers.length; idx++) {
       whitelistedCallers[callers[idx]] = ok;
       emit SetWhitelistedCaller(_msgSender(), callers[idx], ok);
+    }
+  }
+
+  /// @dev Set whitelisted bots.
+  function setWhitelistedBots(address[] calldata bots, bool ok) external onlyOwner {
+    for (uint256 idx = 0; idx < bots.length; idx++) {
+      whitelistedBots[bots[idx]] = ok;
+      emit SetWhitelistedBot(_msgSender(), bots[idx], ok);
     }
   }
 

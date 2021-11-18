@@ -308,8 +308,8 @@ contract MeowMining is Ownable, ReentrancyGuard {
 
   function unlock(uint256 _pid, address _holder) internal {
     UserInfo storage user = userInfo[_pid][_holder];
-    user.lastUnlockTime = block.timestamp;
     uint256 amount = availableUnlock(_pid, _holder);
+    user.lastUnlockTime = block.timestamp;
     if (amount > 0) {
       if (amount > meow.balanceOf(address(this))) {
         amount = meow.balanceOf(address(this));

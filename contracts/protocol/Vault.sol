@@ -108,8 +108,8 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   }
 
   /// @dev Require that the caller must be whitelisted.
-  modifier onlyWhitelistedCaller() {
-    require(config.whitelistedCallers(msg.sender) == true, "Vault::onlyWhitelistedCaller:: !okCaller");
+  modifier onlyWhitelistedBots() {
+    require(config.whitelistedBots(msg.sender) == true, "Vault::onlyWhitelistedBots:: !okCaller");
     _;
   }
 
@@ -378,7 +378,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
-  function kill(uint256 id) external onlyWhitelistedCaller accrue(0) nonReentrant {
+  function kill(uint256 id) external onlyWhitelistedBots accrue(0) nonReentrant {
     require(meowMiningPoolId != uint256(-1), "Vault::kill:: poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
@@ -484,7 +484,7 @@ contract Vault is IVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableU
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
   /// @param to The address to transfer BaseToken to.
   /// @param value The number of BaseToken tokens to withdraw. Must not exceed `reservePool`.
-  function withdrawReserve(address to, uint256 value) external onlyOwner nonReentrant {
+  function withdrawReserve(address to, uint256 value) external onlyWhitelistedBots nonReentrant {
     reservePool = reservePool.sub(value);
     SafeToken.safeTransfer(token, to, value);
     emit WithdrawReserve(to, value);
