@@ -21,6 +21,9 @@ interface IVaultConfig {
   /// @dev Return the address of MeowMining contract.
   function getMeowMiningAddr() external view returns (address);
 
+  /// @dev Return the address of MMeowFee contract.
+  function mMeowFee() external view returns (address);
+
   /// @dev Return the bps rate for reserve pool.
   function getReservePoolBps() external view returns (uint256);
 
@@ -28,7 +31,10 @@ interface IVaultConfig {
   function getKillBps() external view returns (uint256);
 
   /// @dev Return if the caller is whitelisted.
-  function whitelistedCallers(address caller) external returns (bool);
+  function whitelistedCallers(address caller) external view returns (bool);
+
+  /// @dev Return if the caller is whitelisted bot.
+  function whitelistedBots(address bot) external view returns (bool);
 
   /// @dev Return whether the given address is a worker.
   function isWorker(address worker) external view returns (bool);
