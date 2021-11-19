@@ -23,11 +23,15 @@ interface IMMeow {
   function burn(uint256 _amount) external;
 }
 
-interface INewValutPart2 {
-  function getmMeowFee(uint256 _id , bytes calldata data) external returns(uint256);
-  function canChangeSLTP(uint256 _id, uint256 sl, uint256 tp) external returns(bool);
-}
+interface INewVaultPart2 {
+  function getmMeowFee(uint256 _id, bytes calldata data) external returns (uint256);
 
+  function canChangeSLTP(
+    uint256 _id,
+    uint256 sl,
+    uint256 tp
+  ) external returns (bool);
+}
 
 contract NewVault is INewVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, OwnableUpgradeSafe {
   /// @notice Libraries
@@ -120,7 +124,7 @@ contract NewVault is INewVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ow
   }
 
   /// @dev Require that the caller must be whitelisted bot.
-  modifier onlyWhitelistedBot() {
+  modifier onlyWhitelistedBots() {
     require(config.whitelistedBots(msg.sender) == true, "!okCaller");
     _;
   }
@@ -160,16 +164,14 @@ contract NewVault is INewVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ow
   }
 
   //Addition Evennt
-  event TakeProfitORstopLoss(uint256 id,string mode,uint256 value);
-  event ChangeSLTP(uint256 id,uint256 stoploss,uint256 takeprofit);
-  event TransferMMeowFeeToVault(uint256 id,uint256 reserve,uint256 feeAmount);
+  event TakeProfitORstopLoss(uint256 id, string mode, uint256 value);
+  event ChangeSLTP(uint256 id, uint256 stoploss, uint256 takeprofit);
+  event TransferMMeowFeeToVault(uint256 id, uint256 reserve, uint256 feeAmount);
   //Addition Varible
   uint256 public HEALTH_BEFORE;
   uint256 public HEALTH_AFTER;
-  INewValutPart2 public ValutPart2;
+  INewVaultPart2 public VaultPart2;
 
-
-  
   function initialize(
     IVaultConfig _config,
     address _token,
@@ -265,10 +267,7 @@ contract NewVault is INewVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ow
     uint256 amount = share.mul(totalToken()).div(totalSupply());
     _burn(msg.sender, share);
     _safeUnwrap(msg.sender, amount);
-    require(
-      totalSupply() > 10**uint256(decimals() - 1) || totalSupply() == 0,
-      "total supply too low"
-    );
+    require(totalSupply() > 10**uint256(decimals() - 1) || totalSupply() == 0, "total supply too low");
   }
 
   /// @dev Request Funds from user through Vault
@@ -318,7 +317,7 @@ contract NewVault is INewVault, ERC20UpgradeSafe, ReentrancyGuardUpgradeSafe, Ow
   /// @param loan The amount of Token to borrow from the pool.
   /// @param maxReturn The max amount of Token to return to the pool.
   /// @param data The calldata to pass along to the worker for more working context.
-function work(
+  function work(
     uint256 id,
     address worker,
     uint256 principalAmount,
@@ -351,7 +350,7 @@ function work(
       require(pos.owner == msg.sender, "not position owner");
       require(IWorker(worker).health(id) != 0, "not active position");
       HEALTH_BEFORE = IWorker(worker).health(id);
-      bool updateSLTP = STOP_LOSS > 0  || TAKE_PROFIT > 0;
+      bool updateSLTP = STOP_LOSS > 0 || TAKE_PROFIT > 0;
       pos.stopLoss = updateSLTP ? STOP_LOSS : pos.stopLoss;
       pos.takeProfit = updateSLTP ? TAKE_PROFIT : pos.takeProfit;
       _meowMiningWithdraw(id);
@@ -368,10 +367,7 @@ function work(
     uint256 back;
     {
       uint256 sendERC20 = principalAmount.add(loan);
-      require(
-        sendERC20 <= SafeToken.myBalance(token).sub(reservePool),
-        "insufficient funds in the vault"
-      );
+      require(sendERC20 <= SafeToken.myBalance(token).sub(reservePool), "insufficient funds in the vault");
       uint256 beforeERC20 = SafeToken.myBalance(token).sub(sendERC20);
       SafeToken.safeTransfer(token, worker, sendERC20);
       IWorker(worker).work(id, msg.sender, debt, data);
@@ -387,9 +383,9 @@ function work(
       require(HEALTH_AFTER.mul(workFactor) >= debt.mul(10000), "bad work factor");
       _addDebt(id, debt);
       _meowMiningDeposit(id, pos.debtShare);
-      if(STOP_LOSS > 0) require( HEALTH_AFTER.mul(pos.stopLoss) >  debt.mul(10000)  , "bad stop loss factor");
-      if(TAKE_PROFIT > 0) require( HEALTH_AFTER.mul(pos.takeProfit) <  debt.mul(10000)  , "bad take profit factor");
-      if(STOP_LOSS > 0 || TAKE_PROFIT > 0) _transferMMeowFeeToVault(id);
+      if (STOP_LOSS > 0) require(HEALTH_AFTER.mul(pos.stopLoss) > debt.mul(10000), "bad stop loss factor");
+      if (TAKE_PROFIT > 0) require(HEALTH_AFTER.mul(pos.takeProfit) < debt.mul(10000), "bad take profit factor");
+      if (STOP_LOSS > 0 || TAKE_PROFIT > 0) _transferMMeowFeeToVault(id);
     }
     // 5. Release execution scope
     POSITION_ID = _NO_ID;
@@ -409,7 +405,7 @@ function work(
 
   /// @dev Kill the given to the position. Liquidate it immediately if killFactor condition is met.
   /// @param id The position ID to be killed.
-  function kill(uint256 id) external onlyWhitelistedBot accrue(0) nonReentrant {
+  function kill(uint256 id) external onlyWhitelistedBots accrue(0) nonReentrant {
     require(meowMiningPoolId != uint256(-1), "poolId not set");
     // 1. Verify that the position is eligible for liquidation.
     Position storage pos = positions[id];
@@ -500,7 +496,7 @@ function work(
   /// @dev Withdraw BaseToken reserve for underwater positions to the given address.
   /// @param to The address to transfer BaseToken to.
   /// @param value The number of BaseToken tokens to withdraw. Must not exceed `reservePool`.
-  function withdrawReserve(address to, uint256 value) external onlyWhitelistedBot nonReentrant {
+  function withdrawReserve(address to, uint256 value) external onlyWhitelistedBots nonReentrant {
     reservePool = reservePool.sub(value);
     SafeToken.safeTransfer(token, to, value);
   }
@@ -515,14 +511,15 @@ function work(
   receive() external payable {}
 
   function _compareStrings(string memory a, string memory b) internal returns (bool) {
-      return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
   }
+
   /// @dev Close the given position immediately if takeProfit or stoploss condition is met.
   /// @param mode SL = Stoploss , TP = TakeProfit
   /// @param id The position ID to be close.
-  function takeProfitORstopLoss(string memory mode, uint256 id) external onlyWhitelistedBot accrue(0) nonReentrant {
+  function takeProfitORstopLoss(string memory mode, uint256 id) external onlyWhitelistedBots accrue(0) nonReentrant {
     require(meowMiningPoolId != uint256(-1), "poolId not set");
-    require( _compareStrings(mode , "TP") || _compareStrings(mode , "SL") , "Mode must be SL or TP" );
+    require(_compareStrings(mode, "TP") || _compareStrings(mode, "SL"), "Mode must be SL or TP");
     // 1. Verify that the position is eligible for TakeProfit.
     Position storage pos = positions[id];
     require(pos.debtShare > 0, "no debt");
@@ -530,10 +527,8 @@ function work(
     _meowMiningWithdraw(id);
     uint256 debt = _removeDebt(id);
     uint256 health = IWorker(pos.worker).health(id);
-    if (_compareStrings(mode , "TP"))
-      require(health.mul(pos.takeProfit) >= debt.mul(10000), "can't take profit");
-    else
-      require(health.mul(pos.stopLoss) <= debt.mul(10000), "can't stop loss");
+    if (_compareStrings(mode, "TP")) require(health.mul(pos.takeProfit) >= debt.mul(10000), "can't take profit");
+    else require(health.mul(pos.stopLoss) <= debt.mul(10000), "can't stop loss");
     // 3. Perform liquidation and compute the amount of token received.
     uint256 beforeToken = SafeToken.myBalance(token);
     IWorker(pos.worker).liquidate(id);
@@ -543,21 +538,20 @@ function work(
     if (left > 0) {
       _safeUnwrap(pos.owner, left);
     }
-    emit TakeProfitORstopLoss(id , mode ,left);
+    emit TakeProfitORstopLoss(id, mode, left);
   }
 
-  function setValut2(address valut2) external
-  {
-    ValutPart2 = INewValutPart2(valut2);
+  function setVault2(address vault2) external {
+    VaultPart2 = INewVaultPart2(vault2);
   }
 
   function _transferMMeowFeeToVault(uint256 _id) internal {
-    uint256 mMeowFeeAmt = ValutPart2.getmMeowFee(_id, abi.encode(HEALTH_AFTER,HEALTH_BEFORE) );
+    uint256 mMeowFeeAmt = VaultPart2.getmMeowFee(_id, abi.encode(HEALTH_AFTER, HEALTH_BEFORE));
     if (mMeowFeeAmt > 0) {
       IMMeowFee mMeowFee = IMMeowFee(config.mMeowFee());
       address mMeowToken = mMeowFee.mMeowToken();
-      require(SafeToken.balanceOf( mMeowToken, msg.sender) > mMeowFeeAmt , "mMeow not enough for fee");
-      SafeToken.safeTransferFrom(mMeowToken,  msg.sender, address(this), mMeowFeeAmt);
+      require(SafeToken.balanceOf(mMeowToken, msg.sender) > mMeowFeeAmt, "mMeow not enough for fee");
+      SafeToken.safeTransferFrom(mMeowToken, msg.sender, address(this), mMeowFeeAmt);
       mMeowFeeAmt = SafeToken.myBalance(mMeowToken);
       //XX% to reserve
       uint256 reserve = mMeowFeeAmt.mul(mMeowFee.mMeowReserveBps()).div(10000);
@@ -567,26 +561,27 @@ function work(
       if (mMeowFeeAmt > 0) {
         IMMeow(mMeowToken).burn(SafeToken.myBalance(mMeowToken));
       }
-      emit TransferMMeowFeeToVault(_id,reserve,mMeowFeeAmt);
+      emit TransferMMeowFeeToVault(_id, reserve, mMeowFeeAmt);
     }
   }
 
-  function changeSLTP(uint256 id, uint256 sl, uint256 tp) external nonReentrant accrue(0)
-  {
-    require(sl>0 || tp > 0 , "stop loss or take profit must be more than zero");
+  function changeSLTP(
+    uint256 id,
+    uint256 sl,
+    uint256 tp
+  ) external nonReentrant accrue(0) {
+    require(sl > 0 || tp > 0, "stop loss or take profit must be more than zero");
     Position storage pos = positions[id];
     if (pos.stopLoss == 0 && pos.takeProfit == 0) //=> ถ้าเค้าเปลี่ยนเป็น 0 0 ละ
     {
-       HEALTH_AFTER = IWorker(pos.worker).health(id);
-       _transferMMeowFeeToVault(id);
+      HEALTH_AFTER = IWorker(pos.worker).health(id);
+      _transferMMeowFeeToVault(id);
     }
-    if(ValutPart2.canChangeSLTP(id,sl,tp))
-    {
+    if (VaultPart2.canChangeSLTP(id, sl, tp)) {
       pos.stopLoss = sl;
       pos.takeProfit = tp;
     }
-     HEALTH_AFTER = _NO_VALUE;
-     emit ChangeSLTP(id,sl,tp);
+    HEALTH_AFTER = _NO_VALUE;
+    emit ChangeSLTP(id, sl, tp);
   }
-
 }

@@ -1,7 +1,7 @@
 import { config as dotEnvConfig } from "dotenv";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, DeploymentSubmission } from 'hardhat-deploy/types';
-import { ConfigurableInterestVaultConfig, NewValutPart2, NewValutPart2__factory, NewVault, Vault } from '../../../../typechain';
+import { ConfigurableInterestVaultConfig, NewVaultPart2, NewVaultPart2__factory, NewVault, Vault } from '../../../../typechain';
 import { ethers, upgrades } from 'hardhat';
 import hre from "hardhat";
 dotEnvConfig({ path: `.env.${process.env.NODE_ENV}` });
@@ -73,12 +73,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   for await (const i of Array.from({length:VAULTS.length} , (v,i)=> i)) {
     // =====================Upgrade Vault Part 1===============================
     LOG("Upgrade Vault" , VAULTS[i].VAULT_NAME );
-    const oldValut = await GetContractDeployed("Vault",`Vault_${VAULTS[i].VAULT_NAME}`) as Vault;
-    const upgradeValutFactory = await ethers.getContractFactory("NewVault");
-    const vaultPrepare = await upgrades.prepareUpgrade(oldValut.address, upgradeValutFactory);
-    await WriteLogs(`PrepareUpgrade Vault ${VAULTS[i].VAULT_NAME}` , oldValut.address ,  vaultPrepare);
-    exportsLog.push({ name : `Vault ${VAULTS[i].VAULT_NAME}`, proxyAddress:oldValut.address,impAddress:vaultPrepare });
-    await deployments.save(`Vault_${VAULTS[i].VAULT_NAME}`, { address: oldValut.address, implementation: vaultPrepare } as DeploymentSubmission)
+    const oldVault = await GetContractDeployed("Vault",`Vault_${VAULTS[i].VAULT_NAME}`) as Vault;
+    const upgradeVaultFactory = await ethers.getContractFactory("NewVault");
+    const vaultPrepare = await upgrades.prepareUpgrade(oldVault.address, upgradeVaultFactory);
+    await WriteLogs(`PrepareUpgrade Vault ${VAULTS[i].VAULT_NAME}` , oldVault.address ,  vaultPrepare);
+    exportsLog.push({ name : `Vault ${VAULTS[i].VAULT_NAME}`, proxyAddress:oldVault.address,impAddress:vaultPrepare });
+    await deployments.save(`Vault_${VAULTS[i].VAULT_NAME}`, { address: oldVault.address, implementation: vaultPrepare } as DeploymentSubmission)
     if (!(await checkIsVerified(vaultPrepare))) {
         LOG("impl: ", vaultPrepare);
         await hre.run("verify:verify", {
@@ -88,9 +88,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         LOG(`${VAULTS[i].VAULT_NAME} Vault_ impl is verified.`);
     }
     if (!Skip()) {
-        LOG(`Vault_${VAULTS[i].VAULT_NAME}: `, "Proxy: ", oldValut.address, "impl: ", vaultPrepare);
+        LOG(`Vault_${VAULTS[i].VAULT_NAME}: `, "Proxy: ", oldVault.address, "impl: ", vaultPrepare);
     }
-    LOG("Upgrade Vault" , `Vault_${VAULTS[i].VAULT_NAME}` ,  oldValut.address , "With" , vaultPrepare  );
+    LOG("Upgrade Vault" , `Vault_${VAULTS[i].VAULT_NAME}` ,  oldVault.address , "With" , vaultPrepare  );
    // =====================MeowFee===============================
     // Set MeowFee address to vault config
     LOG("Set MeowFee Address");
@@ -102,8 +102,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     LOG("✅ setmMeowFee address", meowFee.address);
     // =====================Upgrade Vault Part 2===============================
     LOG("deploy VaultPart2");
-    const Vault2 = (await ethers.getContractFactory('NewValutPart2',  (await ethers.getSigners())[0])) as NewValutPart2__factory;
-    const vaultPart2 = await upgrades.deployProxy( Vault2, []) as NewValutPart2;
+    const Vault2 = (await ethers.getContractFactory('NewVaultPart2',  (await ethers.getSigners())[0])) as NewVaultPart2__factory;
+    const vaultPart2 = await upgrades.deployProxy( Vault2, []) as NewVaultPart2;
     await vaultPart2.deployed();
 
     const implAddr_vault = await hre.upgrades.erc1967.getImplementationAddress(vaultPart2.address);
@@ -124,12 +124,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     LOG("set vaultpart2 address to vault");
     const vault =  await GetContractDeployed("NewVault",`Vault_${VAULTS[i].VAULT_NAME}`) as NewVault;
     LOG(vault.address , vaultPart2.address)
-    await vault.setValut2(vaultPart2.address, {gasLimit:'200000'});
-    LOG("✅ setValut2 address to valut");
+    await vault.setVault2(vaultPart2.address, {gasLimit:'200000'});
+    LOG("✅ setVault2 address to vault");
     //set vault address to vaultpart2
     LOG("set vault address to vaultpart2");
-    await vaultPart2.setValut1(vault.address, {gasLimit:'200000'});
-    LOG("✅ setValut1 address to vaultpart2");
+    await vaultPart2.setVault1(vault.address, {gasLimit:'200000'});
+    LOG("✅ setVault1 address to vaultpart2");
     LOG("✅ Upgrade" , `Vault_${VAULTS[i].VAULT_NAME}`); 
 
 
